@@ -271,7 +271,18 @@
     </main>
 
     <script>
-        const API_KEY = "AIzaSyD58gynvCDwgVC8A1AQjAjd7aL63pDH3vM";
+        function getApiKey() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKeyFromUrl = urlParams.get('api_key');
+
+            if (apiKeyFromUrl && apiKeyFromUrl.trim() !== '') {
+                return apiKeyFromUrl.trim();
+            }
+
+            return "";
+        }
+
+        const API_KEY = getApiKey();
         const BATCH_SIZE = 2;
 
         let currentPdf = null;
