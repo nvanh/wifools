@@ -151,6 +151,22 @@
         #preview-container img:hover {
             transform: scale(1.03);
         }
+
+        #output {
+            max-height: 1000px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #12629d #e3e9ec;
+        }
+
+        #output::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #output::-webkit-scrollbar-thumb {
+            background: #12629d;
+            border-radius: 20px;
+        }
     </style>
 </head>
 
@@ -284,6 +300,8 @@
 
         const API_KEY = getApiKey();
         const BATCH_SIZE = 2;
+        const MAX_RETRIES = 3;
+        const MAX_RECENT = 10;
 
         let currentPdf = null;
         let currentFileName = "";
@@ -310,6 +328,86 @@
                 check();
             });
         }
+
+        function saveToStorage(fileName, extractedText) {
+            if (!extractedText || extractedText.trim() === "") return;
+
+            let history = JSON.parse(localStorage.getItem("pdfTextHistory") || "[]");
+
+            // Remove duplicate if exists
+            history = history.filter(item => item.fileName !== fileName);
+
+            // Add new entry at the top
+            history.unshift({
+                fileName: fileName,
+                text: extractedText.trim(),
+                timestamp: new Date().toISOString()
+            });
+
+            // Keep only latest MAX_RECENT items
+            if (history.length > MAX_RECENT) history.length = MAX_RECENT;
+
+            localStorage.setItem("pdfTextHistory", JSON.stringify(history));
+
+            renderRecentHistory();
+        }
+
+        function renderRecentHistory() {
+            const container = document.getElementById("recent-history");
+            if (!container) return;
+
+            let history = JSON.parse(localStorage.getItem("pdfTextHistory") || "[]");
+
+            if (history.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 italic p-2">Chưa có file nào</p>`;
+                return;
+            }
+
+            let html = '';
+            history.forEach((item, index) => {
+                const date = new Date(item.timestamp);
+                const timeAgo = Math.floor((Date.now() - date.getTime()) / 60000); // minutes
+
+                html += `
+                <div onclick="loadFromHistory(${index})" 
+                     class="group flex items-center justify-between p-3 hover:bg-gray-100 rounded-xl cursor-pointer transition-all">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                        <span class="material-symbols-outlined text-gray-400 text-xl">article</span>
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-on-surface truncate">${item.fileName}</p>
+                            <p class="text-[10px] text-gray-500">${timeAgo}m ago</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-300 group-hover:text-primary text-lg">arrow_forward</span>
+                </div>
+            `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        window.loadFromHistory = function (index) {
+            const history = JSON.parse(localStorage.getItem("pdfTextHistory") || "[]");
+            if (!history[index]) return;
+
+            const item = history[index];
+            document.getElementById("output").innerText = item.text;
+
+            // Optional: show notification
+            const notif = document.createElement("div");
+            notif.className = "fixed bottom-4 right-4 bg-green-600 text-white px-5 py-3 rounded-2xl text-sm shadow-lg";
+            notif.textContent = `Đã tải văn bản của "${item.fileName}"`;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 2500);
+        };
+
+        // Clear all history (optional button)
+        window.clearHistory = function () {
+            if (confirm("Xóa toàn bộ lịch sử?")) {
+                localStorage.removeItem("pdfTextHistory");
+                renderRecentHistory();
+            }
+        };
 
         // Render preview page (single image)
         async function renderPreviewPage(pageNum) {
@@ -417,20 +515,42 @@
         }
 
         // Call Gemini
-        async function callGeminiBatch(images) {
-            const parts = [{ text: "Extract all readable text accurately, merge breaks to a proper paragraph. Do not modify the content, do not write extra content." }];
-            images.forEach(img => {
-                parts.push({ inline_data: { mime_type: "image/jpeg", data: img } });
-            });
+        async function callGeminiBatch(images, retryCount = 0) {
+            try {
+                const parts = [{ text: "Extract all readable text accurately, merge breaks to a proper paragraph. Do not modify the content, do not write extra content." }];
 
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts }] })
-            });
+                images.forEach(img => {
+                    parts.push({ inline_data: { mime_type: "image/jpeg", data: img } });
+                });
 
-            const data = await res.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "Không trích xuất được văn bản.";
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts }] })
+                });
+
+                if (!res.ok) throw new Error(`API Error: ${res.status}`);
+
+                const data = await res.json();
+
+                const extracted = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+                if (!extracted.trim()) throw new Error("Empty response from Gemini");
+
+                return extracted;
+            } catch (err) {
+                console.warn(`Batch failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, err.message);
+
+                if (retryCount < MAX_RETRIES - 1) {
+                    const delay = Math.pow(2, retryCount) * 1000;
+
+                    await new Promise(r => setTimeout(r, delay));
+
+                    return callGeminiBatch(images, retryCount + 1);
+                }
+
+                throw new Error(`Failed after ${MAX_RETRIES} attempts: ${err.message}`);
+            }
         }
 
         // Update upload area with filename
@@ -508,17 +628,22 @@
                     const extracted = await callGeminiBatch(images);
                     finalText += cleanExtractedText(extracted) + "\n\n";
 
+                    outputEl.innerHTML += `<div class="mb-6">${cleaned || '<span class="text-gray-400">Không có văn bản trên trang này.</span>'}</div>`;
+                    outputEl.scrollTop = outputEl.scrollHeight;
+
                     processed += batch.length;
                     const percent = Math.round((processed / pages.length) * 100);
                     progressBar.style.width = percent + "%";
                     progressText.textContent = percent + "%";
                 }
 
-                outputEl.innerText = cleanExtractedText(finalText) || "Không tìm thấy văn bản nào.";
+                outputEl.innerHTML = finalText.trim()
+                    ? `<div class="whitespace-pre-wrap">${finalText.trim()}</div>`
+                    : "<p class='italic text-gray-500'>Không tìm thấy văn bản nào.</p>";
 
             } catch (err) {
                 console.error(err);
-                outputEl.innerHTML = `<p class="text-red-600">Lỗi: ${err.message || "Không thể xử lý PDF"}</p>`;
+                outputEl.innerHTML = `<p class="text-red-600">Lỗi: ${err.message || "Không thể xử lý"}</p>`;
             }
         });
 
