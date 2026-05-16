@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MP4 Extractor</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111114;
+    --border: #1e1e24;
+    --accent: #ff4d2e;
+    --accent2: #ff8c42;
+    --text: #f0ede8;
+    --muted: #4a4a55;
+    --success: #2aff8f;
+    --glow: rgba(255, 77, 46, 0.15);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,77,46,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 90%, rgba(255,140,66,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 3rem;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(255,77,46,0.3);
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    margin-bottom: 1.2rem;
+  }
+
+  .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    margin-top: 0.8rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.7s 0.15s ease both;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  /* Input area */
+  .input-group {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .input-group:focus-within {
+    border-color: rgba(255,77,46,0.5);
+    box-shadow: 0 0 0 3px var(--glow);
+  }
+
+  .input-label {
+    display: block;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  input[type="url"] {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.9rem 1rem;
+    min-width: 0;
+  }
+
+  input[type="url"]::placeholder {
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .extract-btn {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    padding: 0.9rem 1.4rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .extract-btn:hover { background: #ff3319; }
+  .extract-btn:active { transform: scale(0.98); }
+  .extract-btn:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-icon {
+    width: 14px; height: 14px;
+    transition: transform 0.3s;
+  }
+  .extract-btn:not(:disabled):hover .btn-icon {
+    transform: translateX(2px);
+  }
+
+  /* Status */
+  .status {
+    margin-top: 1.2rem;
+    min-height: 1.5rem;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted);
+    transition: opacity 0.3s;
+  }
+
+  .status.loading { color: var(--accent2); }
+  .status.error { color: #ff6b6b; }
+  .status.success { color: var(--success); }
+
+  .spinner {
+    width: 12px; height: 12px;
+    border: 1.5px solid rgba(255,140,66,0.3);
+    border-top-color: var(--accent2);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  /* Result */
+  .result {
+    margin-top: 1.5rem;
+    display: none;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  .result.visible { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .result-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .result-label::before {
+    content: '✓';
+    font-size: 0.7rem;
+  }
+
+  .result-box {
+    background: rgba(42, 255, 143, 0.04);
+    border: 1px solid rgba(42, 255, 143, 0.15);
+    border-radius: 3px;
+    padding: 0.9rem 1rem;
+    font-size: 0.72rem;
+    color: var(--success);
+    word-break: break-all;
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    padding: 0.5rem 0.9rem;
+    border-radius: 2px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .action-btn.copy {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .action-btn.copy:hover {
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+  }
+  .action-btn.copy.copied {
+    border-color: rgba(42,255,143,0.4);
+    color: var(--success);
+  }
+
+  .action-btn.download {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+  .action-btn.download:hover { background: #ff3319; border-color: #ff3319; }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.8rem 0;
+  }
+
+  /* Info strip */
+  .info-strip {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+
+  .info-item .dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div class="tag">Video Tool</div>
+    <h1>Extract <span>MP4</span><br>from any URL</h1>
+    <p class="subtitle">// paste a page url — get the raw video link</p>
+  </div>
+
+  <div class="card">
+    <label class="input-label" for="url-input">Target URL</label>
+    <div class="input-group">
+      <input
+        type="url"
+        id="url-input"
+        placeholder="https://hanoionline.vn/chuong-trinh..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="extract-btn" id="extract-btn" onclick="extractMP4()">
+        Extract
+        <svg class="btn-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="result" id="result">
+      <div class="result-header">
+        <span class="result-label">MP4 Link Found</span>
+      </div>
+      <div class="result-box" id="result-url"></div>
+      <div class="result-actions">
+        <button class="action-btn copy" id="copy-btn" onclick="copyLink()">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Copy Link
+        </button>
+        <a class="action-btn download" id="download-btn" href="#" target="_blank" rel="noopener">
+          ↓ Open / Download
+        </a>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="info-strip">
+      <div class="info-item"><span class="dot"></span>Extracts &lt;source&gt; tags</div>
+      <div class="info-item"><span class="dot"></span>Supports video/mp4 type</div>
+      <div class="info-item"><span class="dot"></span>Via CORS proxy</div>
+    </div>
+  </div>
+
+  <div class="footer">Built with Claude · No data stored · Client-side extraction</div>
+</div>
+
+<script>
+  // Allow Enter key
+  document.getElementById('url-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') extractMP4();
+  });
+
+  function setStatus(type, msg) {
+    const el = document.getElementById('status');
+    el.className = 'status ' + type;
+    if (type === 'loading') {
+      el.innerHTML = `<div class="spinner"></div>${msg}`;
+    } else {
+      const icons = { error: '✕', success: '✓', '': '' };
+      el.textContent = (icons[type] ? icons[type] + '  ' : '') + msg;
+    }
+  }
+
+  function showResult(url) {
+    const result = document.getElementById('result');
+    document.getElementById('result-url').textContent = url;
+    document.getElementById('download-btn').href = url;
+    result.classList.add('visible');
+  }
+
+  function hideResult() {
+    document.getElementById('result').classList.remove('visible');
+  }
+
+  async function extractMP4() {
+    const input = document.getElementById('url-input');
+    const btn = document.getElementById('extract-btn');
+    const url = input.value.trim();
+
+    if (!url) {
+      setStatus('error', 'Please enter a URL first');
+      return;
+    }
+
+    try { new URL(url); }
+    catch { setStatus('error', 'That doesn\'t look like a valid URL'); return; }
+
+    hideResult();
+    btn.disabled = true;
+    setStatus('loading', 'Fetching page content...');
+
+    try {
+      // Use a CORS proxy to fetch the page
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(15000) });
+
+      if (!response.ok) throw new Error(`Proxy returned ${response.status}`);
+
+      const data = await response.json();
+      const html = data.contents;
+
+      if (!html) throw new Error('No content returned from page');
+
+      setStatus('loading', 'Scanning for MP4 source tags...');
+
+      // Parse the HTML and find <source> tags with video/mp4
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      // Strategy 1: <source type="video/mp4">
+      let mp4Url = null;
+
+      const sources = doc.querySelectorAll('source');
+      for (const s of sources) {
+        const type = s.getAttribute('type') || '';
+        const src = s.getAttribute('src') || '';
+        if (type.includes('mp4') || src.endsWith('.mp4')) {
+          mp4Url = src;
+          break;
+        }
+      }
+
+      // Strategy 2: regex fallback on raw HTML
+      if (!mp4Url) {
+        const patterns = [
+          /<source[^>]+src=["']?([^"'\s>]+\.mp4[^"'\s>]*)["']?[^>]*>/gi,
+          /["'](https?:\/\/[^"'\s]+\.mp4[^"'\s]*?)["']/gi,
+          /src=(https?:\/\/[^\s>]+\.mp4[^\s>]*)/gi,
+        ];
+
+        for (const pattern of patterns) {
+          const match = pattern.exec(html);
+          if (match) {
+            mp4Url = match[1];
+            break;
+          }
+        }
+      }
+
+      if (mp4Url) {
+        // Resolve relative URLs
+        if (!mp4Url.startsWith('http')) {
+          mp4Url = new URL(mp4Url, url).href;
+        }
+        setStatus('success', 'MP4 link extracted successfully');
+        showResult(mp4Url);
+      } else {
+        setStatus('error', 'No MP4 source found on this page');
+      }
+
+    } catch (err) {
+      if (err.name === 'TimeoutError') {
+        setStatus('error', 'Request timed out — page took too long to respond');
+      } else {
+        setStatus('error', 'Failed to fetch: ' + err.message);
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function copyLink() {
+    const url = document.getElementById('result-url').textContent;
+    const btn = document.getElementById('copy-btn');
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M3 11H2a1 1 0 01-1-1V2a1 1 0 011-1h8a1 1 0 011 1v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Copy Link`;
+      }, 2000);
+    } catch {
+      btn.textContent = 'Failed';
+    }
+  }
+</script>
+</body>
+</html>
