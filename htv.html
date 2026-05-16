@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MP4 Extractor</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0b;
@@ -23,7 +23,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Noto Sans', monospace;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -94,7 +94,7 @@
   }
 
   h1 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-size: clamp(2.2rem, 6vw, 3.5rem);
     font-weight: 800;
     line-height: 1.05;
@@ -165,7 +165,7 @@
     border: none;
     outline: none;
     color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Noto Sans', monospace;
     font-size: 0.78rem;
     padding: 0.9rem 1rem;
     min-width: 0;
@@ -180,7 +180,7 @@
     background: var(--accent);
     border: none;
     color: #fff;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 700;
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -288,7 +288,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Noto Sans', monospace;
     font-size: 0.68rem;
     letter-spacing: 0.05em;
     padding: 0.5rem 0.9rem;
@@ -317,7 +317,7 @@
     background: var(--accent);
     border-color: var(--accent);
     color: #fff;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     font-weight: 700;
   }
   .action-btn.download:hover { background: #ff3319; border-color: #ff3319; }
@@ -385,13 +385,11 @@
 
 <div class="container">
   <div class="header">
-    <div class="tag">Video Tool</div>
-    <h1>Extract <span>MP4</span><br>from any URL</h1>
-    <p class="subtitle">// paste a page url — get the raw video link</p>
+    <h1>Lấy link <span>MP4</span><br>Truyền Hình Hà Nội</h1>
   </div>
 
   <div class="card">
-    <label class="input-label" for="url-input">Target URL</label>
+    <label class="input-label" for="url-input">Đường link video</label>
     <div class="input-group">
       <input
         type="url"
@@ -401,7 +399,7 @@
         spellcheck="false"
       />
       <button class="extract-btn" id="extract-btn" onclick="extractMP4()">
-        Extract
+        Lấy link
         <svg class="btn-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 8H13M13 8L9 4M13 8L9 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -427,15 +425,9 @@
     </div>
 
     <hr class="divider">
-
-    <div class="info-strip">
-      <div class="info-item"><span class="dot"></span>Extracts &lt;source&gt; tags</div>
-      <div class="info-item"><span class="dot"></span>Supports video/mp4 type</div>
-      <div class="info-item"><span class="dot"></span>Via CORS proxy</div>
-    </div>
   </div>
 
-  <div class="footer">Built with Claude · No data stored · Client-side extraction</div>
+  <div class="footer">Built with love for my wife</div>
 </div>
 
 <script>
