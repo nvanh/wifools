@@ -486,7 +486,7 @@
     try {
       // Use a CORS proxy to fetch the page
       const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(30000) });
+      const response = await fetch(proxyUrl, { signal: AbortSignal.timeout(60000) });
 
       if (!response.ok) throw new Error(`Proxy returned ${response.status}`);
 
