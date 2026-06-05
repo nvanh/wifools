@@ -276,6 +276,54 @@
     letter-spacing: 0.06em;
     line-height: 1.6;
   }
+
+  /* Translation */
+  .btn-translate {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.63rem;
+    color: var(--text-dim);
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+
+  .btn-translate:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .btn-translate.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .vi-text {
+    display: none;
+    margin-top: 7px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1.6;
+    opacity: 0.85;
+    padding-left: 2px;
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+  }
+
+  .vi-text.visible {
+    display: block;
+  }
 </style>
 </head>
 <body>
@@ -315,18 +363,18 @@
 
 <script>
 const SENTENCES = [
-  { id: 1, start: 0.28,  end: 2.71,  text: "우리 집에서는 아내가 장을 봅니다." },
-  { id: 2, start: 3.60,  end: 7.29,  text: "저도 가끔 쇼핑을 하지만 주로 인터넷으로 합니다." },
-  { id: 3, start: 8.49,  end: 14.05, text: "인터넷으로 사는 물건은 대부분 전자제품이고, 가끔 음식도 주문합니다." },
-  { id: 4, start: 15.32, end: 19.06, text: "자주 사용하는 쇼핑 앱은 쇼피인데, 정말 좋습니다." },
-  { id: 5, start: 20.13, end: 24.39, text: "이 앱에는 다양한 상품이 많아서 거의 다 있는 것 같습니다." },
-  { id: 6, start: 25.60, end: 29.81, text: "원하는 상품을 쉽게 찾을 수 있고 저렴한 가격에 살 수 있습니다." },
-  { id: 7, start: 31.28, end: 37.21, text: "전반적으로 쇼피에서 쇼핑하는 것에 매우 만족하지만 가끔 불편할 때도 있습니다." },
-  { id: 8, start: 38.40, end: 44.89, text: "예를 들어, 물건이 예상보다 늦게 와서 일주일 정도 기다린 적이 있는데, 너무 답답했습니다." },
-  { id: 9, start: 46.16, end: 51.18, text: "또한 받은 상품이 앱의 설명과 다른 경우도 있어서 실망한 적도 있습니다." },
-  { id: 10, start: 52.54, end: 60.63, text: "그럴 때마다 반품을 하고 환불을 기다려야 하는데, 환불받는 데 일주일에서 이주일 정도 걸려서 꽤 불편합니다." },
-  { id: 11, start: 61.64, end: 67.51, text: "하지만 그 후부터는 주문하기 전에 후기를 먼저 읽는데, 많은 도움이 됩니다." },
-  { id: 12, start: 68.76, end: 73.66, text: "그래도 인터넷 쇼핑은 편리해서 앞으로도 계속 이용할 것 같습니다." },
+  { id: 1,  start: 0.28,  end: 2.71,  text: "우리 집에서는 아내가 장을 봅니다.",                                                                                                              vi: "Ở nhà tôi, vợ tôi là người đi mua sắm." },
+  { id: 2,  start: 3.60,  end: 7.29,  text: "저도 가끔 쇼핑을 하지만 주로 인터넷으로 합니다.",                                                                                           vi: "Tôi cũng thỉnh thoảng mua sắm, nhưng chủ yếu là mua trên mạng." },
+  { id: 3,  start: 8.49,  end: 14.05, text: "인터넷으로 사는 물건은 대부분 전자제품이고, 가끔 음식도 주문합니다.",                                                                          vi: "Hàng mua trên mạng hầu hết là đồ điện tử, và thỉnh thoảng tôi cũng đặt đồ ăn." },
+  { id: 4,  start: 15.32, end: 19.06, text: "자주 사용하는 쇼핑 앱은 쇼피인데, 정말 좋습니다.",                                                                                          vi: "Ứng dụng mua sắm tôi hay dùng là Shopee, thật sự rất tốt." },
+  { id: 5,  start: 20.13, end: 24.39, text: "이 앱에는 다양한 상품이 많아서 거의 다 있는 것 같습니다.",                                                                                  vi: "Ứng dụng này có rất nhiều sản phẩm đa dạng, gần như cái gì cũng có." },
+  { id: 6,  start: 25.60, end: 29.81, text: "원하는 상품을 쉽게 찾을 수 있고 저렴한 가격에 살 수 있습니다.",                                                                              vi: "Có thể dễ dàng tìm thấy sản phẩm mong muốn và mua với giá rẻ." },
+  { id: 7,  start: 31.28, end: 37.21, text: "전반적으로 쇼피에서 쇼핑하는 것에 매우 만족하지만 가끔 불편할 때도 있습니다.",                                                                vi: "Nhìn chung tôi rất hài lòng khi mua sắm trên Shopee, nhưng đôi khi cũng có lúc bất tiện." },
+  { id: 8,  start: 38.40, end: 44.89, text: "예를 들어, 물건이 예상보다 늦게 와서 일주일 정도 기다린 적이 있는데, 너무 답답했습니다.",                                                    vi: "Ví dụ, có lần hàng đến trễ hơn dự kiến, tôi phải chờ khoảng một tuần, thật sự rất bực bội." },
+  { id: 9,  start: 46.16, end: 51.18, text: "또한 받은 상품이 앱의 설명과 다른 경우도 있어서 실망한 적도 있습니다.",                                                                      vi: "Ngoài ra, cũng có trường hợp sản phẩm nhận được khác với mô tả trên ứng dụng nên tôi đã từng thất vọng." },
+  { id: 10, start: 52.54, end: 60.63, text: "그럴 때마다 반품을 하고 환불을 기다려야 하는데, 환불받는 데 일주일에서 이주일 정도 걸려서 꽤 불편합니다.",                                    vi: "Mỗi lần như vậy phải trả hàng và chờ hoàn tiền, việc hoàn tiền mất khoảng một đến hai tuần nên khá bất tiện." },
+  { id: 11, start: 61.64, end: 67.51, text: "하지만 그 후부터는 주문하기 전에 후기를 먼저 읽는데, 많은 도움이 됩니다.",                                                                    vi: "Nhưng từ sau đó, trước khi đặt hàng tôi đều đọc đánh giá trước, điều này rất hữu ích." },
+  { id: 12, start: 68.76, end: 73.66, text: "그래도 인터넷 쇼핑은 편리해서 앞으로도 계속 이용할 것 같습니다.",                                                                              vi: "Dù vậy, mua sắm online tiện lợi nên có lẽ tôi sẽ tiếp tục sử dụng trong tương lai." },
 ];
 
 const audio = document.getElementById('audioEl');
@@ -355,6 +403,13 @@ SENTENCES.forEach((s, i) => {
     <div class="sentence-body">
       <div class="sentence-text">${s.text}</div>
       <div class="timestamp">${fmtTime(s.start)} → ${fmtTime(s.end)}</div>
+      <button class="btn-translate" data-idx="${i}">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="flex-shrink:0">
+          <path d="M1 2h4M3 1v1M1 2c.5 2 2 3.5 4 3.5M5 2c-.3 1-1 2-2 2.5M6 5l1.5 4M7.5 5 9 9M6.8 7.5h1.4"/>
+        </svg>
+        Dịch
+      </button>
+      <div class="vi-text" id="vi${i}">${s.vi}</div>
       <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
     </div>
     <div class="play-icon">
@@ -367,8 +422,24 @@ SENTENCES.forEach((s, i) => {
       </svg>
     </div>
   `;
-  item.addEventListener('click', () => playSentence(i, false));
+  item.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-translate')) return;
+    playSentence(i, false);
+  });
   list.appendChild(item);
+});
+
+// Translation toggle
+list.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-translate');
+  if (!btn) return;
+  const idx = btn.dataset.idx;
+  const viEl = document.getElementById(`vi${idx}`);
+  const isVisible = viEl.classList.toggle('visible');
+  btn.classList.toggle('active', isVisible);
+  btn.innerHTML = isVisible
+    ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="flex-shrink:0"><path d="M1 2h4M3 1v1M1 2c.5 2 2 3.5 4 3.5M5 2c-.3 1-1 2-2 2.5M6 5l1.5 4M7.5 5 9 9M6.8 7.5h1.4"/></svg> Ẩn`
+    : `<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style="flex-shrink:0"><path d="M1 2h4M3 1v1M1 2c.5 2 2 3.5 4 3.5M5 2c-.3 1-1 2-2 2.5M6 5l1.5 4M7.5 5 9 9M6.8 7.5h1.4"/></svg> Dịch`;
 });
 
 function setActive(idx) {
