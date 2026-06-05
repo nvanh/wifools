@@ -466,6 +466,11 @@ function showNoAudioMsg() {
   note.textContent = '⚠ Please drag & drop the WAV file onto this page first.';
 }
 
+audioLoaded = true;
+document.querySelector('.note').textContent = `✓ Loaded: ${file.name}`;
+document.querySelector('.note').style.color = 'var(--accent)';
+noAudioShown = false;
+
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => {
   e.preventDefault();
