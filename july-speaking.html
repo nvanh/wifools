@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Korean Sentence Player</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;700&family=DM+Mono:wght@300;400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e10;
+    --surface: #17171a;
+    --border: #2a2a30;
+    --accent: #c8a96e;
+    --accent-dim: rgba(200, 169, 110, 0.15);
+    --text: #e8e4dc;
+    --text-dim: #7a7870;
+    --active-bg: #1e1c18;
+    --playing-glow: rgba(200, 169, 110, 0.25);
+  }
+
+  body {
+    font-family: 'Noto Serif KR', serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 16px 80px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  header p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+  }
+
+  .player-wrap {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  /* Audio controls bar */
+  .controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+
+  .btn-play-all {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #0e0e10;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    font-weight: 400;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn-play-all:hover { opacity: 0.85; }
+  .btn-play-all:active { transform: scale(0.97); }
+
+  .speed-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    margin-left: auto;
+  }
+
+  .speed-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* Sentence list */
+  .sentence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sentence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sentence-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .sentence-item:hover {
+    border-color: rgba(200, 169, 110, 0.4);
+    background: var(--active-bg);
+  }
+
+  .sentence-item.playing {
+    border-color: var(--accent);
+    background: var(--active-bg);
+    box-shadow: 0 0 20px var(--playing-glow);
+  }
+
+  .sentence-item.playing::before {
+    opacity: 1;
+  }
+
+  .sentence-item.played .index {
+    color: var(--accent);
+    opacity: 0.5;
+  }
+
+  .index {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    padding-top: 3px;
+    min-width: 22px;
+    transition: color 0.2s;
+  }
+
+  .sentence-body {
+    flex: 1;
+  }
+
+  .sentence-text {
+    font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+    font-weight: 300;
+    line-height: 1.65;
+    color: var(--text);
+    transition: color 0.2s;
+  }
+
+  .sentence-item.playing .sentence-text {
+    color: #fff;
+  }
+
+  .timestamp {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.63rem;
+    color: var(--text-dim);
+    margin-top: 5px;
+    letter-spacing: 0.06em;
+  }
+
+  .play-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: background 0.2s;
+  }
+
+  .sentence-item.playing .play-icon {
+    background: var(--accent);
+  }
+
+  .play-icon svg { display: block; }
+
+  .sentence-item:not(.playing) .icon-pause { display: none; }
+  .sentence-item.playing .icon-play { display: none; }
+  .sentence-item.playing .icon-pause { display: block; }
+
+  /* Wave animation */
+  .wave {
+    display: none;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    margin-top: 6px;
+  }
+
+  .sentence-item.playing .wave { display: flex; }
+
+  .wave span {
+    display: block;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: wave 0.8s ease-in-out infinite;
+  }
+
+  .wave span:nth-child(1) { animation-delay: 0s; height: 6px; }
+  .wave span:nth-child(2) { animation-delay: 0.12s; height: 12px; }
+  .wave span:nth-child(3) { animation-delay: 0.24s; height: 8px; }
+  .wave span:nth-child(4) { animation-delay: 0.08s; height: 14px; }
+  .wave span:nth-child(5) { animation-delay: 0.16s; height: 6px; }
+
+  @keyframes wave {
+    0%, 100% { transform: scaleY(0.4); }
+    50% { transform: scaleY(1); }
+  }
+
+  /* Notification */
+  .note {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-align: center;
+    margin-top: 28px;
+    letter-spacing: 0.06em;
+    line-height: 1.6;
+  }
+
+  /* Translation */
+  .btn-translate {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.63rem;
+    color: var(--text-dim);
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+
+  .btn-translate:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .btn-translate.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .vi-text {
+    display: none;
+    margin-top: 7px;
+    font-family: 'Noto Serif KR', serif;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--accent);
+    line-height: 1.6;
+    opacity: 0.85;
+    padding-left: 2px;
+    border-left: 2px solid var(--accent);
+    padding-left: 8px;
+  }
+
+  .vi-text.visible {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Korean Audio — SNS (인터넷과 스마트폰)</h1>
+  <p>클릭하여 각 문장 재생 · Click to play each sentence</p>
+</header>
+
+<div class="player-wrap">
+  <div class="controls-bar">
+    <button class="btn-play-all" id="btnPlayAll">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+        <polygon points="2,1 11,6 2,11"/>
+      </svg>
+      Play All
+    </button>
+    <span class="speed-label">Speed</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="0.7">0.7×</option>
+      <option value="1" selected>1.0×</option>
+      <option value="1.25">1.25×</option>
+      <option value="1.5">1.5×</option>
+    </select>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="sentence-list" id="sentenceList"></div>
+
+  <p class="note" style="color: var(--accent);">✓ Audio đã được nhúng sẵn, sẵn sàng phát.</p>
+</div>
+
+<audio id="audioEl" src="july_speaking.mp3"></audio>
+
+<script>
+const SENTENCES = [
+  { id: 1,  start: 0.00,  end: 4.23,  text: "요즘에는 인터넷과 스마트폰이 널리 사용되고 있습니다.",                                              vi: "Dạo này, Internet và điện thoại thông minh được sử dụng rộng rãi." },
+  { id: 2,  start: 4.99,  end: 8.33,  text: "그래서 많은 사람들이 SNS를 이용하고 있습니다.",                                                       vi: "Vì vậy, nhiều người đang sử dụng mạng xã hội (SNS)." },
+  { id: 3,  start: 9.39,  end: 13.58, text: "저는 SNS에 장점과 단점이 모두 있다고 생각합니다.",                                                  vi: "Tôi nghĩ rằng SNS vừa có ưu điểm vừa có nhược điểm." },
+  { id: 4,  start: 14.68, end: 19.49, text: "먼저 SNS의 장점은 사람들과 쉽게 연락할 수 있다는 것입니다.",                                        vi: "Trước hết, ưu điểm của SNS là có thể dễ dàng liên lạc với mọi người." },
+  { id: 5,  start: 20.57, end: 25.41, text: "또한 다양한 정보를 빠르게 얻을 수 있고 새로운 지식도 배울 수 있습니다.",                              vi: "Ngoài ra, có thể nhanh chóng có được nhiều thông tin đa dạng và học được kiến thức mới." },
+  { id: 6,  start: 26.61, end: 32.17, text: "직장인에게는 업무와 관련된 정보를 찾거나 인맥을 넓히는 데 도움이 되기도 합니다.",                    vi: "Đối với người đi làm, nó cũng giúp ích cho việc tìm thông tin liên quan đến công việc hoặc mở rộng các mối quan hệ." },
+  { id: 7,  start: 33.40, end: 35.97, text: "하지만 SNS에는 단점도 있습니다.",                                                                    vi: "Nhưng SNS cũng có nhược điểm." },
+  { id: 8,  start: 37.04, end: 42.85, text: "너무 많이 사용하면 시간 낭비가 될 수 있고 공부나 업무에 집중하기 어려울 수 있습니다.",                  vi: "Nếu sử dụng quá nhiều thì có thể lãng phí thời gian và khó tập trung vào học tập hay công việc." },
+  { id: 9,  start: 44.07, end: 48.13, text: "또한 인터넷에는 잘못된 정보도 많기 때문에 주의해야 합니다.",                                        vi: "Ngoài ra, trên Internet cũng có nhiều thông tin sai lệch nên cần phải chú ý." },
+  { id: 10, start: 49.32, end: 52.83, text: "개인 정보를 너무 많이 공개하는 것도 문제가 될 수 있습니다.",                                          vi: "Việc công khai quá nhiều thông tin cá nhân cũng có thể trở thành vấn đề." },
+  { id: 11, start: 54.13, end: 58.17, text: "저는 SNS를 적절하게 사용하는 것이 중요하다고 생각합니다.",                                          vi: "Tôi nghĩ rằng việc sử dụng SNS một cách hợp lý là điều quan trọng." },
+  { id: 12, start: 59.26, end: 63.69, text: "시간을 정해 놓고 이용하며 필요한 정보를 중심으로 보는 것이 좋습니다.",                                vi: "Nên đặt ra thời gian sử dụng cố định và chủ yếu xem những thông tin cần thiết." },
+  { id: 13, start: 64.87, end: 72.02, text: "SNS를 올바르게 사용한다면 생활과 업무에 도움이 되는 좋은 도구가 될 수 있을 것이라고 생각합니다.",     vi: "Tôi nghĩ rằng nếu sử dụng SNS đúng cách, nó có thể trở thành một công cụ tốt giúp ích cho cuộc sống và công việc." },
+];
+
+const audio = document.getElementById('audioEl');
+const list = document.getElementById('sentenceList');
+const progressFill = document.getElementById('progressFill');
+const btnPlayAll = document.getElementById('btnPlayAll');
+const speedSelect = document.getElementById('speedSelect');
+
+let currentIdx = -1;
+let playAllMode = false;
+let audioLoaded = false;
+
+function fmtTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = (s % 60).toFixed(2).padStart(5, '0');
+  return `${String(m).padStart(2,'0')}:${sec}`;
+}
+
+// Render
+SENTENCES.forEach((s, i) => {
+  const item = document.createElement('div');
+  item.className = 'sentence-item';
+  item.id = `s${i}`;
+  item.innerHTML = `
+    <span class="index">${String(s.id).padStart(2,'0')}</span>
+    <div class="sentence-body">
+      <div class="sentence-text">${s.text}</div>
+      <div class="timestamp">${fmtTime(s.start)} → ${fmtTime(s.end)}</div>
+      <button class="btn-translate" data-idx="${i}">
+        🌐 Dịch
+      </button>
+      <div class="vi-text" id="vi${i}">${s.vi}</div>
+      <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="play-icon">
+      <svg class="icon-play" width="11" height="11" viewBox="0 0 11 11" fill="var(--accent)">
+        <polygon points="2,1 10,5.5 2,10"/>
+      </svg>
+      <svg class="icon-pause" width="11" height="11" viewBox="0 0 11 11" fill="#0e0e10">
+        <rect x="2" y="1" width="3" height="9" rx="1"/>
+        <rect x="7" y="1" width="3" height="9" rx="1"/>
+      </svg>
+    </div>
+  `;
+  item.addEventListener('click', (e) => {
+    if (e.target.closest('.btn-translate')) return;
+    playSentence(i, false);
+  });
+  list.appendChild(item);
+});
+
+// Translation toggle
+list.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-translate');
+  if (!btn) return;
+  const idx = btn.dataset.idx;
+  const viEl = document.getElementById(`vi${idx}`);
+  const isVisible = viEl.classList.toggle('visible');
+  btn.classList.toggle('active', isVisible);
+  btn.innerHTML = isVisible
+    ? `❌ Ẩn`
+    : `🌐 Dịch`;
+});
+
+function setActive(idx) {
+  document.querySelectorAll('.sentence-item').forEach((el, i) => {
+    el.classList.toggle('playing', i === idx);
+    if (i < idx) el.classList.add('played');
+  });
+  currentIdx = idx;
+  const pct = SENTENCES.length > 1 ? (idx / (SENTENCES.length - 1)) * 100 : 0;
+  progressFill.style.width = pct + '%';
+  if (idx >= 0) {
+    document.getElementById(`s${idx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function clearActive() {
+  document.querySelectorAll('.sentence-item').forEach(el => el.classList.remove('playing'));
+  currentIdx = -1;
+}
+
+function playSentence(idx, fromPlayAll) {
+  if (!audioLoaded) {
+    showNoAudioMsg();
+    return;
+  }
+  playAllMode = fromPlayAll;
+
+  // Toggle if same sentence clicked
+  if (!fromPlayAll && currentIdx === idx && !audio.paused) {
+    audio.pause();
+    clearActive();
+    updatePlayAllBtn(false);
+    return;
+  }
+
+  const s = SENTENCES[idx];
+  audio.playbackRate = parseFloat(speedSelect.value);
+  audio.currentTime = s.start;
+  setActive(idx);
+  audio.play().catch(() => showNoAudioMsg());
+}
+
+audio.addEventListener('timeupdate', () => {
+  if (currentIdx < 0) return;
+  const s = SENTENCES[currentIdx];
+  if (audio.currentTime >= s.end) {
+    if (playAllMode && currentIdx < SENTENCES.length - 1) {
+      playSentence(currentIdx + 1, true);
+    } else {
+      audio.pause();
+      clearActive();
+      if (playAllMode) {
+        progressFill.style.width = '100%';
+        updatePlayAllBtn(false);
+        playAllMode = false;
+      }
+    }
+  }
+});
+
+audio.addEventListener('pause', () => {
+  if (!playAllMode) clearActive();
+});
+
+btnPlayAll.addEventListener('click', () => {
+  if (!audioLoaded) { showNoAudioMsg(); return; }
+  if (playAllMode && !audio.paused) {
+    audio.pause();
+    playAllMode = false;
+    updatePlayAllBtn(false);
+    clearActive();
+  } else {
+    playSentence(0, true);
+    updatePlayAllBtn(true);
+  }
+});
+
+function updatePlayAllBtn(playing) {
+  btnPlayAll.innerHTML = playing
+    ? `<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="2" y="1" width="3" height="9" rx="1"/><rect x="7" y="1" width="3" height="9" rx="1"/></svg> Pause All`
+    : `<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg> Play All`;
+}
+
+speedSelect.addEventListener('change', () => {
+  audio.playbackRate = parseFloat(speedSelect.value);
+});
+
+// Drop audio file
+let noAudioShown = false;
+function showNoAudioMsg() {
+  if (noAudioShown) return;
+  noAudioShown = true;
+  const note = document.querySelector('.note');
+  note.style.color = '#c87070';
+  note.textContent = '⚠ Không tải được audio.';
+}
+
+audioLoaded = true;
+</script>
+</body>
+</html>
