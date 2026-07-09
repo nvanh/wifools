@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusAI — Model Evaluation & Deployment Platform</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,200..900;1,9..40,200..900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="vue.global.prod.js"></script>
+  <script src="index.prod.js"></script>
+  <style>
+    :root {
+      --sidebar-w: 240px;
+      --sidebar-collapsed: 64px;
+      --header-h: 56px;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-ui: 'DM Sans', sans-serif
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body,
+    #app {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: var(--font-ui)
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      height: var(--header-h);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      transition: all .3s
+    }
+
+    .sidebar-logo .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #0D9488, #06B6D4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0
+    }
+
+    .sidebar-logo .logo-mark svg {
+      width: 18px;
+      height: 18px;
+      color: #fff
+    }
+
+    .sidebar-logo .logo-text {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 17px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      transition: opacity .2s
+    }
+
+    .sidebar-collapsed .logo-text {
+      opacity: 0;
+      width: 0
+    }
+
+    .main-layout {
+      height: calc(100vh - var(--header-h))
+    }
+
+    .workspace-tabs .n-tabs-tab {
+      padding: 8px 16px !important;
+      font-size: 13px !important
+    }
+
+    .workspace-tabs .n-tabs-tab--active {
+      background: rgba(13, 148, 136, .08) !important
+    }
+
+    .stat-card {
+      transition: transform .2s, box-shadow .2s
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .12)
+    }
+
+    .chart-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 100%;
+      padding: 0 4px
+    }
+
+    .chart-bar .bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      transition: height .6s cubic-bezier(.4, 0, .2, 1);
+      min-width: 0
+    }
+
+    .mini-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 32px
+    }
+
+    .mini-chart .bar {
+      width: 4px;
+      border-radius: 2px;
+      transition: height .4s
+    }
+
+    .donut-chart {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .donut-chart .inner {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      z-index: 1
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0
+    }
+
+    .pulse {
+      animation: pulse 2s infinite
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn .3s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .quick-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 16px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all .2s;
+      border: 1px solid transparent
+    }
+
+    .quick-action-btn:hover {
+      background: rgba(13, 148, 136, .06);
+      border-color: rgba(13, 148, 136, .2)
+    }
+
+    .quick-action-btn .icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .deploy-timeline .n-timeline-item {
+      padding-bottom: 0 !important
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      flex-wrap: wrap
+    }
+
+    .n-data-table .n-data-table-td {
+      font-size: 13px
+    }
+
+    .header-env-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: .3px
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, .15);
+      border-radius: 3px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, .25)
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .15)
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, .25)
+    }
+
+    .perm-tree .n-tree-node-content {
+      font-size: 13px
+    }
+
+    .wizard-step-content {
+      min-height: 280px;
+      padding: 24px 0
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <main-app></main-app>
+  </div>
+  <script>
+    const { createApp, ref, reactive, computed, watch, h, defineComponent, onMounted, nextTick, toRaw, provide, inject } = Vue;
+    const { darkTheme, createDiscreteApi } = naive;
+    const { message, dialog, notification } = createDiscreteApi(['message', 'dialog', 'notification']);
+
+    /* ── SVG Icon Helper ── */
+    function svgIcon(path, d = 24, stroke = true) {
+      const paths = Array.isArray(path) ? path : (typeof path === 'string' ? path.split('|').map(p => h('path', { d: p.trim() })) : path);
+      return h('svg', { viewBox: `0 0 ${d} ${d}`, fill: stroke ? 'none' : 'currentColor', stroke: stroke ? 'currentColor' : 'none', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', width: '1em', height: '1em' }, paths);
+    }
+    const IC = {
+      dashboard: svgIcon([h('rect', { x: '3', y: '3', width: '7', height: '7', rx: '1' }), h('rect', { x: '14', y: '3', width: '7', height: '7', rx: '1' }), h('rect', { x: '3', y: '14', width: '7', height: '7', rx: '1' }), h('rect', { x: '14', y: '14', width: '7', height: '7', rx: '1' })]),
+      dataset: svgIcon('M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12'),
+      label: svgIcon('M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01'),
+      model: svgIcon('M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'),
+      train: svgIcon('M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z'),
+      eval: svgIcon('M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11'),
+      deploy: svgIcon('M22 12h-4l-3 9L9 3l-3 9H2'),
+      report: svgIcon('M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z| M14 2v6h6| M16 13H8| M16 17H8| M10 9H8'),
+      users: svgIcon('M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2|M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87|M16 3.13a4 4 0 010 7.75'),
+      role: svgIcon('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'),
+      perm: svgIcon('M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3'),
+      log: svgIcon('M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z| M14 2v6h6| M16 13H8| M16 17H8| M10 9H8'),
+      search: svgIcon('M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'),
+      bell: svgIcon('M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9|M13.73 21a2 2 0 01-3.46 0'),
+      settings: svgIcon('M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z| M12 8a4 4 0 100 8 4 4 0 000-8z'),
+      sun: svgIcon('M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707|M16 12a4 4 0 11-8 0 4 4 0 018 0z'),
+      moon: svgIcon('M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z'),
+      menu: svgIcon('M3 12h18M3 6h18M3 18h18'),
+      chevLeft: svgIcon('M15 18l-6-6 6-6'),
+      chevRight: svgIcon('M9 18l6-6-6-6'),
+      close: svgIcon('M18 6L6 18M6 6l12 12'),
+      plus: svgIcon('M12 5v14M5 12h14'),
+      filter: svgIcon('M22 3H2l8 9.46V19l4 2v-8.54L22 3z'),
+      download: svgIcon('M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'),
+      upload: svgIcon('M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12'),
+      edit: svgIcon('M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7|M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z'),
+      trash: svgIcon('M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2'),
+      eye: svgIcon('M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z| M12 9a3 3 0 100 6 3 3 0 000-6z'),
+      refresh: svgIcon('M23 4v6h-6M1 20v-6h6|M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15'),
+      copy: svgIcon('M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2z| M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1'),
+      check: svgIcon('M20 6L9 17l-5-5'),
+      warning: svgIcon('M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z| M12 9v4M12 17h.01'),
+      info: svgIcon('M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z| M12 16v-4M12 8h.01'),
+      rocket: svgIcon('M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09zM12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z| M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0|M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5'),
+      zap: svgIcon('M13 2L3 14h9l-1 10 10-12h-9l1-10z'),
+      activity: svgIcon('M22 12h-4l-3 9L9 3l-3 9H2'),
+      git: svgIcon('M16 18l6-6-6-6M8 6l-6 6 6 6'),
+      folder: svgIcon('M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z'),
+      more: svgIcon('M12 13a1 1 0 100-2 1 1 0 000 2zM19 13a1 1 0 100-2 1 1 0 000 2zM5 13a1 1 0 100-2 1 1 0 000 2z'),
+      sidebar: svgIcon('M3 3h18v18H3zM9 3v18'),
+      column: svgIcon('M12 3v18M3 3h18M3 9h18M3 15h18'),
+      target: svgIcon('M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z| M12 18a6 6 0 100-12 6 6 0 000 12z| M12 14a2 2 0 100-4 2 2 0 000 4z'),
+      terminal: svgIcon('M4 17l6-6-6-6M12 19h8'),
+      bookmark: svgIcon('M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z'),
+      shield: svgIcon('M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'),
+      globe: svgIcon('M12 2a10 10 0 100 20 10 10 0 000-20zM2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z'),
+      clock: svgIcon('M12 2a10 10 0 100 20 10 10 0 000-20z| M12 6v6l4 2'),
+      logout: svgIcon('M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4|M16 17l5-5-5-5|M21 12H9'),
+      fullscreen: svgIcon('M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3'),
+      lock: svgIcon('M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z| M7 11V7a5 5 0 0110 0v4'),
+    };
+    const Icon = defineComponent({ props: { name: { type: String, required: true } }, setup(props) { return () => IC[props.name] || null; } });
+
+    /* ── Data Generation ── */
+    const ORGS = ['NexusAI Core', 'Vision Labs', 'NLP Division', 'Edge AI Team', 'Research Lab', 'AutoML Group'];
+    const TEAMS = ['Computer Vision', 'Natural Language Processing', 'Speech & Audio', 'Reinforcement Learning', 'MLOps', 'Data Engineering', 'Security AI', 'Robotics'];
+    const USERS = [
+      { name: 'Sarah Chen', email: 'sarah.chen@nexus.ai', role: 'admin', org: 'NexusAI Core', team: 'MLOps', avatar: 'SC' },
+      { name: 'Marcus Rivera', email: 'marcus.r@nexus.ai', role: 'manager', org: 'Vision Labs', team: 'Computer Vision', avatar: 'MR' },
+      { name: 'Aiko Tanaka', email: 'aiko.t@nexus.ai', role: 'engineer', org: 'NLP Division', team: 'Natural Language Processing', avatar: 'AT' },
+      { name: 'James Okonkwo', email: 'james.o@nexus.ai', role: 'engineer', org: 'Edge AI Team', team: 'MLOps', avatar: 'JO' },
+      { name: 'Elena Petrova', email: 'elena.p@nexus.ai', role: 'data_scientist', org: 'Research Lab', team: 'Reinforcement Learning', avatar: 'EP' },
+      { name: 'David Kim', email: 'david.k@nexus.ai', role: 'engineer', org: 'AutoML Group', team: 'Data Engineering', avatar: 'DK' },
+      { name: 'Priya Sharma', email: 'priya.s@nexus.ai', role: 'data_scientist', org: 'NLP Division', team: 'Natural Language Processing', avatar: 'PS' },
+      { name: 'Lucas Müller', email: 'lucas.m@nexus.ai', role: 'manager', org: 'Vision Labs', team: 'Computer Vision', avatar: 'LM' },
+      { name: 'Fatima Al-Hassan', email: 'fatima.h@nexus.ai', role: 'engineer', org: 'Security AI', team: 'Security AI', avatar: 'FA' },
+      { name: 'Tomás García', email: 'tomas.g@nexus.ai', role: 'data_scientist', org: 'Research Lab', team: 'Reinforcement Learning', avatar: 'TG' },
+      { name: 'Yuki Watanabe', email: 'yuki.w@nexus.ai', role: 'engineer', org: 'Edge AI Team', team: 'Speech & Audio', avatar: 'YW' },
+      { name: 'Olivia Bennett', email: 'olivia.b@nexus.ai', role: 'manager', org: 'NexusAI Core', team: 'MLOps', avatar: 'OB' },
+    ];
+    const DS_TYPES = ['Image Classification', 'Object Detection', 'Semantic Segmentation', 'Text Classification', 'Named Entity Recognition', 'Sentiment Analysis', 'Machine Translation', 'Speech Recognition', 'Anomaly Detection', 'Recommendation', 'Regression', 'Time Series', 'Graph Classification', 'Question Answering', 'Summarization', 'Text Generation', 'Image Generation', 'Tabular Classification'];
+    const DS_FORMATS = ['COCO JSON', 'Pascal VOC', 'CSV', 'Parquet', 'TFRecord', 'LMDB', 'HDF5', 'JSONL', 'WebDataset', 'Arrow', 'TFRecord Compressed', 'Petastorm'];
+    const MOD_FRAMEWORKS = ['PyTorch', 'TensorFlow', 'JAX', 'ONNX', 'TensorRT', 'OpenVINO', 'TFLite', 'PaddlePaddle'];
+    const MOD_STATUSES = ['Published', 'Draft', 'Archived', 'Deprecated'];
+    const DEPLOY_STATUSES = ['Running', 'Stopped', 'Failed', 'Scaling', 'Updating', 'Draining'];
+    const DEPLOY_ENVS = ['Production', 'Staging', 'Development', 'Canary', 'Edge'];
+    const TRAIN_STATUSES = ['Completed', 'Running', 'Queued', 'Failed', 'Cancelled'];
+    const EVAL_METRICS = ['Accuracy', 'Precision', 'Recall', 'F1 Score', 'AUC-ROC', 'BLEU', 'ROUGE-L', 'mAP@0.5', 'mAP@0.5:0.95', 'IoU', 'WER', 'CER', 'Perplexity', 'RMSE', 'MAE', 'R²'];
+    const LOG_ACTIONS = ['model.deploy', 'model.publish', 'model.archive', 'dataset.upload', 'dataset.delete', 'dataset.split', 'training.start', 'training.stop', 'training.complete', 'evaluation.run', 'evaluation.export', 'deploy.scale', 'deploy.rollback', 'deploy.config', 'user.login', 'user.logout', 'role.create', 'role.update', 'permission.grant', 'permission.revoke', 'system.config', 'system.backup'];
+
+    function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a }
+    function pick(arr) { return arr[rand(0, arr.length - 1)] }
+    function uuid() { return 'xxxx-xxxx-xxxx'.replace(/x/g, () => ('0123456789abcdef')[rand(0, 15)]) }
+    function dateBefore(days) { const d = new Date(); d.setDate(d.getDate() - rand(0, days)); return d }
+    function fmtDate(d) { return d.toISOString().slice(0, 10) }
+    function fmtDateTime(d) { return d.toISOString().slice(0, 19).replace('T', ' ') }
+
+    function genDatasets(n = 120) {
+      const prefixes = ['ImageNet', 'COCO', 'CIFAR', 'WikiText', 'SQuAD', 'LibriSpeech', 'UCF101', 'Cityscapes', 'NYU Depth', 'Kitti', 'OpenImages', 'LAION', 'CommonCrawl', 'PubMed', 'ArXiv', 'Custom', 'Internal', 'Synthetic', 'Augmented', 'Curated'];
+      const suffixes = ['v2.1', 'v3.0', '2024', '2023-Q4', '2024-Q1', 'Final', 'Raw', 'Cleaned', 'Balanced', 'Subset-A', 'Subset-B', 'Full', 'Mini', 'Large', 'XL'];
+      return Array.from({ length: n }, (_, i) => ({
+        id: `ds-${String(i + 1).padStart(4, '0')}`,
+        name: `${pick(prefixes)} ${pick(suffixes)}`,
+        type: pick(DS_TYPES),
+        format: pick(DS_FORMATS),
+        size: rand(1, 5000),
+        samples: rand(100, 2000000),
+        owner: pick(USERS).name,
+        team: pick(TEAMS),
+        created: dateBefore(365),
+        updated: dateBefore(30),
+        status: pick(['Active', 'Archived', 'Processing', 'Error']),
+        version: `${rand(1, 5)}.${rand(0, 9)}.${rand(0, 9)}`,
+        description: `${pick(DS_TYPES)} dataset for ${pick(['training', 'validation', 'testing', 'benchmarking'])} purposes.`,
+        tags: Array.from({ length: rand(1, 4) }, () => pick(['image', 'text', 'audio', 'video', 'tabular', 'multimodal', 'balanced', 'imbalanced', 'labeled', 'unlabeled', 'synthetic', 'real-world'])),
+        quality: pick(['High', 'Medium', 'Low', 'Unknown']),
+        storage: pick(['S3', 'GCS', 'Azure Blob', 'Local NFS', 'MinIO']),
+        downloadCount: rand(0, 5000),
+      }))
+    }
+
+    function genModels(n = 55) {
+      const names = ['ResNet', 'EfficientNet', 'ViT', 'BERT', 'GPT', 'LLaMA', 'Whisper', 'YOLO', 'U-Net', 'DINO', 'CLIP', 'Stable Diffusion', 'T5', 'BART', 'Wav2Vec', 'DETR', 'Swin', 'MaMo', 'Mamba', 'Phi', 'Gemma', 'Mistral', 'Mixtral', 'DeepSeek', 'Qwen'];
+      const sizes = ['Tiny', 'Small', 'Base', 'Large', 'XL', 'XXL', '3B', '7B', '13B', '34B', '70B'];
+      return Array.from({ length: n }, (_, i) => {
+        const fw = pick(MOD_FRAMEWORKS); const nm = pick(names); const sz = pick(sizes);
+        return {
+          id: `mdl-${String(i + 1).padStart(4, '0')}`,
+          name: `${nm}-${sz}`,
+          framework: fw,
+          status: pick(MOD_STATUSES),
+          version: `v${rand(1, 8)}.${rand(0, 9)}`,
+          params: rand(1, 175000),
+          accuracy: Math.round((70 + Math.random() * 29.9) * 100) / 100,
+          owner: pick(USERS).name,
+          team: pick(TEAMS),
+          created: dateBefore(400),
+          updated: dateBefore(20),
+          type: pick(['Classification', 'Detection', 'Segmentation', 'Generation', 'Embedding', 'Translation', 'Summarization', 'Recognition']),
+          task: pick(DS_TYPES),
+          license: pick(['MIT', 'Apache-2.0', 'CC-BY-4.0', 'GPL-3.0', 'Proprietary', 'Internal Only']),
+          description: `${nm} variant (${sz}) for ${pick(DS_TYPES).toLowerCase()} tasks.`,
+          trainings: rand(1, 50),
+          evaluations: rand(0, 100),
+          deployments: rand(0, 20),
+          downloads: rand(0, 10000),
+          tags: Array.from({ length: rand(1, 3) }, () => pick(['SOTA', 'efficient', 'real-time', 'edge-compatible', 'multimodal', 'fine-tuned', 'pretrained', 'quantized', 'distilled'])),
+        }
+      })
+    }
+
+    function genDeployments(n = 220) {
+      return Array.from({ length: n }, (_, i) => {
+        const env = pick(DEPLOY_ENVS); const st = pick(DEPLOY_STATUSES);
+        return {
+          id: `dep-${String(i + 1).padStart(5, '0')}`,
+          name: `${env.toLowerCase()}-${pick(['resnet', 'bert', 'yolo', 'vit', 'gpt', 'whisper', 'clip'])}-${rand(1, 99)}`,
+          model: pick(genModels(55)).name,
+          environment: env,
+          status: st,
+          endpoint: `https://api.nexus.ai/v2/infer/${env.toLowerCase()}/${rand(1000, 9999)}`,
+          replicas: st === 'Running' ? rand(1, 12) : 0,
+          cpu: rand(2, 64),
+          memory: `${rand(4, 256)}GB`,
+          gpu: pick(['None', 'T4', 'A10G', 'A100', 'H100', 'V100', 'L4']),
+          requestsPerSec: st === 'Running' ? rand(10, 5000) : 0,
+          latencyP50: st === 'Running' ? Math.round(Math.random() * 100) : 0,
+          latencyP99: st === 'Running' ? rand(50, 500) : 0,
+          errorRate: st === 'Running' ? Math.round(Math.random() * 200) / 100 : 0,
+          deployedBy: pick(USERS).name,
+          deployedAt: dateBefore(90),
+          lastScaled: dateBefore(7),
+          autoScale: pick([true, false]),
+          version: `v${rand(1, 5)}.${rand(0, 9)}`,
+          region: pick(['us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1', 'ap-northeast-1']),
+        }
+      })
+    }
+
+    function genTrainings(n = 80) {
+      return Array.from({ length: n }, (_, i) => {
+        const st = pick(TRAIN_STATUSES); const dur = st === 'Running' ? rand(1, 48) : rand(1, 120);
+        return {
+          id: `trn-${String(i + 1).padStart(4, '0')}`,
+          name: `Training Run #${i + 1}`,
+          model: pick(genModels(55)).name,
+          dataset: pick(genDatasets(120)).name,
+          status: st,
+          startedAt: dateBefore(60),
+          completedAt: st === 'Completed' ? dateBefore(5) : null,
+          duration: `${dur}h`,
+          epochs: rand(1, 200),
+          currentEpoch: st === 'Running' ? rand(1, 100) : st === 'Completed' ? rand(50, 200) : 0,
+          batchSize: pick([8, 16, 32, 64, 128, 256, 512]),
+          learningRate: `${(Math.random() * 0.01).toExponential(1)}`,
+          optimizer: pick(['AdamW', 'SGD', 'Adam', 'LAMB', 'Adafactor', 'Lion']),
+          gpuHours: rand(1, 2000),
+          cost: Math.round(rand(10, 5000) * 100) / 100,
+          finalLoss: st === 'Completed' ? Math.round(Math.random() * 2 * 1000) / 1000 : null,
+          bestMetric: st === 'Completed' ? Math.round((70 + Math.random() * 29) * 100) / 100 : null,
+          createdBy: pick(USERS).name,
+          team: pick(TEAMS),
+          hardware: pick(['A100 x8', 'H100 x4', 'A10G x2', 'V100 x4', 'T4 x8']),
+          notes: pick(['', 'Baseline run', 'With augmentation', 'Hyperparameter sweep', 'Final production run', 'Debugging overfitting']),
+        }
+      })
+    }
+
+    function genEvaluations(n = 150) {
+      return Array.from({ length: n }, (_, i) => {
+        const metrics = {}; const count = rand(3, 6);
+        for (let j = 0; j < count; j++) { const m = pick(EVAL_METRICS); metrics[m] = Math.round((50 + Math.random() * 50) * 100) / 100 }
+        return {
+          id: `eval-${String(i + 1).padStart(5, '0')}`,
+          name: `Eval #${i + 1} — ${pick(genModels(55)).name}`,
+          model: pick(genModels(55)).name,
+          dataset: pick(genDatasets(120)).name,
+          status: pick(['Completed', 'Running', 'Failed']),
+          metrics,
+          createdAt: dateBefore(90),
+          createdBy: pick(USERS).name,
+          duration: `${rand(1, 48)}h`,
+          compareWith: rand(0, 1) ? `Eval #${Math.max(1, i)}` : null,
+          notes: pick(['', 'Production benchmark', 'A/B test', 'Regression check', 'Pre-deployment validation']),
+        }
+      })
+    }
+
+    function genLogs(n = 3000) {
+      const levels = ['INFO', 'INFO', 'INFO', 'INFO', 'WARN', 'WARN', 'ERROR', 'DEBUG', 'DEBUG', 'DEBUG'];
+      return Array.from({ length: n }, (_, i) => ({
+        id: i + 1,
+        timestamp: dateBefore(30),
+        level: pick(levels),
+        action: pick(LOG_ACTIONS),
+        user: pick(USERS).name,
+        ip: `${rand(10, 192)}.${rand(0, 255)}.${rand(0, 255)}.${rand(1, 254)}`,
+        detail: `${pick(['Executed', 'Triggered', 'Initiated', 'Completed', 'Failed', 'Attempted'])} ${pick(LOG_ACTIONS)} on resource ${pick(['model-001', 'ds-0042', 'dep-00015', 'trn-0033', 'eval-00120'])}`,
+        duration: Math.random() > 0.5 ? `${rand(10, 5000)}ms` : null,
+        status: pick(['success', 'success', 'success', 'failure', 'timeout']),
+      }))
+    }
+
+    function genReports() {
+      return [
+        { id: 'r1', name: 'Q1 2024 Model Performance Summary', type: 'Quarterly', created: dateBefore(30), status: 'Published', pages: 24, downloads: 142 },
+        { id: 'r2', name: 'Deployment Reliability Report — March', type: 'Monthly', created: dateBefore(15), status: 'Published', pages: 18, downloads: 89 },
+        { id: 'r3', name: 'Data Quality Audit — Image Datasets', type: 'Audit', created: dateBefore(7), status: 'Draft', pages: 32, downloads: 12 },
+        { id: 'r4', name: 'Cost Analysis — GPU Utilization', type: 'Analysis', created: dateBefore(5), status: 'Published', pages: 15, downloads: 203 },
+        { id: 'r5', name: 'Model Drift Detection — Production Models', type: 'Monitoring', created: dateBefore(2), status: 'Processing', pages: 0, downloads: 0 },
+        { id: 'r6', name: 'Annual AI Platform Usage Report 2023', type: 'Annual', created: dateBefore(90), status: 'Published', pages: 56, downloads: 1204 },
+        { id: 'r7', name: 'Security Compliance Audit', type: 'Audit', created: dateBefore(10), status: 'Published', pages: 42, downloads: 67 },
+        { id: 'r8', name: 'Team Productivity Metrics — NLP Division', type: 'Analysis', created: dateBefore(3), status: 'Draft', pages: 11, downloads: 5 },
+      ]
+    }
+
+    /* ── Permission Tree Data ── */
+    const permTreeData = [
+      {
+        key: 'dataset', label: 'Dataset Management', children: [
+          { key: 'dataset.view', label: 'View Datasets' }, { key: 'dataset.create', label: 'Create Dataset' }, { key: 'dataset.edit', label: 'Edit Dataset' }, { key: 'dataset.delete', label: 'Delete Dataset' }, { key: 'dataset.download', label: 'Download Dataset' }, { key: 'dataset.upload', label: 'Upload Dataset' },
+        ]
+      },
+      {
+        key: 'model', label: 'Model Management', children: [
+          { key: 'model.view', label: 'View Models' }, { key: 'model.create', label: 'Create Model' }, { key: 'model.publish', label: 'Publish Model' }, { key: 'model.archive', label: 'Archive Model' }, { key: 'model.download', label: 'Download Model' },
+        ]
+      },
+      {
+        key: 'training', label: 'Training Management', children: [
+          { key: 'training.view', label: 'View Trainings' }, { key: 'training.start', label: 'Start Training' }, { key: 'training.stop', label: 'Stop Training' }, { key: 'training.config', label: 'Configure Hardware' },
+        ]
+      },
+      {
+        key: 'evaluation', label: 'Evaluation Management', children: [
+          { key: 'eval.view', label: 'View Evaluations' }, { key: 'eval.run', label: 'Run Evaluation' }, { key: 'eval.export', label: 'Export Results' }, { key: 'eval.compare', label: 'Compare Models' },
+        ]
+      },
+      {
+        key: 'deploy', label: 'Deployment Management', children: [
+          { key: 'deploy.view', label: 'View Deployments' }, { key: 'deploy.create', label: 'Create Deployment' }, { key: 'deploy.scale', label: 'Scale Deployment' }, { key: 'deploy.rollback', label: 'Rollback Deployment' }, { key: 'deploy.config', label: 'Configure Endpoint' },
+        ]
+      },
+      {
+        key: 'system', label: 'System Administration', children: [
+          { key: 'system.users', label: 'Manage Users' }, { key: 'system.roles', label: 'Manage Roles' }, { key: 'system.perms', label: 'Manage Permissions' }, { key: 'system.logs', label: 'View Audit Logs' }, { key: 'system.config', label: 'System Configuration' }, { key: 'system.backup', label: 'Backup & Restore' },
+        ]
+      },
+    ];
+
+    /* ── Role Data ── */
+    const rolesData = [
+      { key: 'admin', label: 'Super Admin', desc: 'Full system access', users: 2, perms: 28 },
+      { key: 'manager', label: 'Team Manager', desc: 'Manage team resources', users: 5, perms: 18 },
+      { key: 'engineer', label: 'ML Engineer', desc: 'Build and deploy models', users: 15, perms: 14 },
+      { key: 'data_scientist', label: 'Data Scientist', desc: 'Analyze data and train models', users: 12, perms: 10 },
+      { key: 'viewer', label: 'Viewer', desc: 'Read-only access', users: 30, perms: 4 },
+      { key: 'external', label: 'External Reviewer', desc: 'Limited read access', users: 8, perms: 2 },
+    ];
+
+    /* ── Theme Overrides ── */
+    const themeOverrides = {
+      common: {
+        primaryColor: '#0D9488', primaryColorHover: '#14B8A6', primaryColorPressed: '#0F766E', primaryColorSuppl: '#0D9488',
+        borderRadius: '6px', borderRadiusSmall: '4px', fontFamily: 'DM Sans, sans-serif',
+      },
+      DataTable: { thColor: 'rgba(13,148,136,0.04)', thTextColor: 'rgba(0,0,0,0.65)', tdColor: 'transparent', borderColor: 'rgba(0,0,0,0.06)', thFontWeight: '600' },
+      Layout: { siderColor: '#111318', headerColor: 'rgba(255,255,255,0.8)', headerBorderColor: 'rgba(0,0,0,0.06)' },
+      Menu: { itemTextColor: 'rgba(255,255,255,0.6)', itemTextColorHover: 'rgba(255,255,255,0.9)', itemTextColorActive: '#14B8A6', itemTextColorChildActive: '#14B8A6', itemColorActive: 'rgba(13,148,136,0.15)', arrowColor: 'rgba(255,255,255,0.4)' },
+      Tabs: { tabTextColorActiveLine: '#0D9488', tabTextColorHoverLine: '#14B8A6', barColor: '#0D9488' },
+      Card: { color: 'rgba(255,255,255,0.7)', borderColor: 'rgba(0,0,0,0.06)' },
+      Tag: { borderRadius: '4px' },
+    };
+
+    const darkThemeOverrides = {
+      common: {
+        primaryColor: '#14B8A6', primaryColorHover: '#2DD4BF', primaryColorPressed: '#0D9488', primaryColorSuppl: '#14B8A6',
+        bodyColor: '#0f1117', cardColor: '#1a1d27', modalColor: '#1a1d27', popoverColor: '#1a1d27', tableColor: '#1a1d27', inputColor: '#1a1d27', actionColor: '#1a1d27', hoverColor: 'rgba(255,255,255,0.06)',
+      },
+      DataTable: { thColor: 'rgba(20,184,166,0.06)', thTextColor: 'rgba(255,255,255,0.7)', tdColor: 'transparent', borderColor: 'rgba(255,255,255,0.06)' },
+      Layout: { siderColor: '#0a0c10', headerColor: 'rgba(15,17,23,0.85)', headerBorderColor: 'rgba(255,255,255,0.06)' },
+      Menu: { itemTextColor: 'rgba(255,255,255,0.5)', itemTextColorHover: 'rgba(255,255,255,0.85)', itemTextColorActive: '#14B8A6', itemColorActive: 'rgba(20,184,166,0.12)' },
+      Card: { color: '#1a1d27', borderColor: 'rgba(255,255,255,0.06)' },
+    };
+
+    /* ── Bar Chart Component ── */
+    const BarChart = defineComponent({
+      props: { data: { type: Array, default: () => [] }, color: { type: String, default: '#0D9488' }, height: { type: Number, default: 120 } },
+      setup(props) { return () => h('div', { class: 'chart-bar', style: { height: props.height + 'px' } }, props.data.map((v, i) => h('div', { class: 'bar', style: { height: v + '%', background: v > 75 ? '#f59e0b' : props.color, opacity: 0.5 + v / 200, animationDelay: i * 30 + 'ms' }, title: v + '%' }))) }
+    });
+
+    /* ── Mini Sparkline ── */
+    const Sparkline = defineComponent({
+      props: { data: { type: Array, default: () => [] }, color: { type: String, default: '#0D9488' } },
+      setup(props) { return () => h('div', { class: 'mini-chart' }, props.data.map((v, i) => h('div', { class: 'bar', style: { height: v + '%', background: props.color, opacity: 0.4 + v / 150 } }))) }
+    });
+
+    /* ── Donut Chart ── */
+    const DonutChart = defineComponent({
+      props: { percent: { type: Number, default: 0 }, color: { type: String, default: '#0D9488' }, size: { type: Number, default: 80 }, label: { type: String, default: '' } },
+      setup(props) { return () => h('div', { class: 'donut-chart', style: { width: props.size + 'px', height: props.size + 'px', background: `conic-gradient(${props.color} ${props.percent}%, rgba(128,128,128,0.15) ${props.percent}%)` } }, [h('div', { class: 'inner', style: { background: '#fff' } }, [h('span', { style: { fontSize: props.size < 60 ? '10px' : '14px', fontWeight: '700', color: props.color } }, props.percent + '%')])]) }
+    });
+
+    /* ── Dashboard View ── */
+    const DashboardView = defineComponent({
+      setup() {
+        const msg = inject('message');
+        const stats = reactive([
+          { label: 'Total Models', value: 55, change: '+8 this month', icon: 'model', color: '#0D9488', spark: [40, 55, 48, 62, 70, 65, 80, 75, 90, 85, 95, 88] },
+          { label: 'Active Deployments', value: 142, change: '+12 this week', icon: 'deploy', color: '#f59e0b', spark: [30, 45, 42, 55, 60, 58, 70, 75, 68, 80, 85, 90] },
+          { label: 'Datasets', value: 120, change: '+15 this month', icon: 'dataset', color: '#8b5cf6', spark: [50, 52, 55, 58, 60, 63, 65, 68, 70, 72, 75, 78] },
+          { label: 'Training Runs', value: 34, change: '6 running now', icon: 'train', color: '#ef4444', spark: [20, 35, 28, 40, 32, 45, 38, 50, 42, 55, 48, 52] },
+        ]);
+        const chartData = Array.from({ length: 24 }, () => rand(20, 95));
+        const recentActivity = [
+          { time: '2 min ago', text: 'GPT-7B deployed to production', type: 'success', user: 'Sarah Chen' },
+          { time: '8 min ago', text: 'Training Run #72 completed', type: 'info', user: 'Elena Petrova' },
+          { time: '15 min ago', text: 'Dataset COCO v3.0 uploaded', type: 'info', user: 'Marcus Rivera' },
+          { time: '22 min ago', text: 'Deployment staging-yolo-42 failed', type: 'error', user: 'James Okonkwo' },
+        ];
+        const topModels = genModels(55).slice(0, 5).map(m => ({ ...m, bar: rand(60, 99) }));
+        const deployByEnv = reactive([{ env: 'Production', count: 45, color: '#0D9488' }, { env: 'Staging', count: 38, color: '#f59e0b' }, { env: 'Development', count: 32, color: '#8b5cf6' }, { env: 'Canary', count: 17, color: '#06b6d4' }, { env: 'Edge', count: 10, color: '#ef4444' }]);
+        return { stats, chartData, recentActivity, topModels, deployByEnv, msg, IC };
+      },
+      template: `
+    <div class="fade-in" style="padding:4px">
+      <n-grid :x-gap="16" :y-gap="16" :cols="4" responsive="screen" item-responsive>
+        <n-gi v-for="s in stats" :key="s.label" span="4 m:2 l:1">
+          <n-card class="stat-card" :bordered="true">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <n-text depth="3" style="font-size:12px;text-transform:uppercase;letter-spacing:.5px">{{s.label}}</n-text>
+                <div style="font-family:var(--font-display);font-size:32px;font-weight:700;margin:4px 0;line-height:1">{{s.value}}</div>
+                <n-text :type="s.change.includes('failed')?'error':'success'" style="font-size:12px">{{s.change}}</n-text>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+                <n-icon :size="24" :color="s.color"><icon :name="s.icon"/></n-icon>
+                <sparkline :data="s.spark" :color="s.color"/>
+              </div>
+            </div>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      <n-grid :x-gap="16" :y-gap="16" :cols="12" responsive="screen" item-responsive style="margin-top:16px">
+        <n-gi span="12 l:8" style="display:flex">
+          <n-card title="API Requests — Last 24 Hours" :bordered="true" content-style="height:100%;display:flex;flex-direction:column">
+            <bar-chart :data="chartData" :height="140" color="#0D9488"/>
+            <n-space justify="space-between" style="margin-top:8px">
+              <n-text depth="3" style="font-size:11px">00:00</n-text>
+              <n-text depth="3" style="font-size:11px">06:00</n-text>
+              <n-text depth="3" style="font-size:11px">12:00</n-text>
+              <n-text depth="3" style="font-size:11px">18:00</n-text>
+              <n-text depth="3" style="font-size:11px">Now</n-text>
+            </n-space>
+          </n-card>
+        </n-gi>
+        <n-gi span="12 l:4">
+          <n-card title="Deployments by Environment" :bordered="true" content-style="height:100%;display:flex;flex-direction:column">
+            <div v-for="d in deployByEnv" :key="d.env" style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+              <div :style="{width:'10px',height:'10px',borderRadius:'3px',background:d.color,flexShrink:0}"></div>
+              <n-text style="flex:1;font-size:13px">{{d.env}}</n-text>
+              <n-text style="font-weight:700;font-size:14px;font-family:var(--font-display)">{{d.count}}</n-text>
+            </div>
+            <n-divider style="margin:4px 0 12px"/>
+            <div style="display:flex;justify-content:center;gap:24px">
+              <div style="text-align:center">
+                <donut-chart :percent="68" color="#0D9488" :size="64"/>
+                <n-text depth="3" style="font-size:10px;display:block;margin-top:4px">Uptime</n-text>
+              </div>
+              <div style="text-align:center">
+                <donut-chart :percent="23" color="#f59e0b" :size="64"/>
+                <n-text depth="3" style="font-size:10px;display:block;margin-top:4px">GPU Use</n-text>
+              </div>
+              <div style="text-align:center">
+                <donut-chart :percent="2" color="#ef4444" :size="64"/>
+                <n-text depth="3" style="font-size:10px;display:block;margin-top:4px">Errors</n-text>
+              </div>
+            </div>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      <n-grid :x-gap="16" :y-gap="16" :cols="12" responsive="screen" item-responsive style="margin-top:16px">
+        <n-gi span="12 l:5" style="display:flex">
+          <n-card title="Top Performing Models" :bordered="true">
+            <div v-for="m in topModels" :key="m.id" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(128,128,128,0.08)">
+              <n-avatar :size="36" round :style="{background:m.accuracy>90?'rgba(13,148,136,0.12)':'rgba(128,128,128,0.08)',color:m.accuracy>90?'#0D9488':'#888',fontSize:'12px',fontWeight:'700',fontFamily:'var(--font-display)'}">{{m.accuracy}}%</n-avatar>
+              <div style="flex:1;min-width:0">
+                <n-text style="font-size:13px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{m.name}}</n-text>
+                <n-text depth="3" style="font-size:11px">{{m.framework}} · {{m.type}}</n-text>
+              </div>
+              <n-progress type="line" :percentage="m.bar" :show-indicator="false" :height="4" :color="m.bar>85?'#0D9488':'#f59e0b'" style="width:80px"/>
+            </div>
+          </n-card>
+        </n-gi>
+        <n-gi span="12 l:7" style="display:flex">
+          <n-card title="Recent Activity" :bordered="true">
+            <n-timeline>
+              <n-timeline-item v-for="(a,i) in recentActivity" :key="i" :type="a.type" :time="a.time">
+                <n-text style="font-size:13px">{{a.text}}</n-text>
+                <br><n-text depth="3" style="font-size:11px">{{a.user}}</n-text>
+              </n-timeline-item>
+            </n-timeline>
+          </n-card>
+        </n-gi>
+      </n-grid>
+    </div>
+  `
+    });
+
+    /* ── Dataset Management View (DataTable showcase) ── */
+    const DatasetView = defineComponent({
+      setup() {
+        const msg = inject('message');
+        const datasets = genDatasets(120);
+        const filteredData = ref(datasets);
+        const searchVal = ref('');
+        const typeFilter = ref(null);
+        const statusFilter = ref(null);
+        const checkedKeys = ref([]);
+        const page = ref(1);
+        const pageSize = ref(20);
+        const sortKey = ref(null);
+        const sortOrder = ref(null);
+        const showModal = ref(false);
+        const editingDs = ref(null);
+        const inlineEditId = ref(null);
+        const inlineEditVal = ref('');
+        const showColumnPicker = ref(false);
+        const columnVisibility = reactive({ id: true, name: true, type: true, format: true, samples: true, owner: true, status: true, quality: true, size: true, tags: true, created: true, actions: true });
+        const formValue = reactive({ name: '', type: null, format: null, description: '' });
+        const formRules = { name: { required: true, message: 'Name is required', trigger: 'blur' }, type: { required: true, message: 'Type is required', trigger: 'change' } };
+        const searchPrefix = () => IC.search;
+
+        function applyFilters() {
+          let d = datasets;
+          if (searchVal.value) d = d.filter(x => x.name.toLowerCase().includes(searchVal.value.toLowerCase()));
+          if (typeFilter.value) d = d.filter(x => x.type === typeFilter.value);
+          if (statusFilter.value) d = d.filter(x => x.status === statusFilter.value);
+          filteredData.value = d; page.value = 1;
+        }
+        watch([searchVal, typeFilter, statusFilter], applyFilters);
+
+        const pagedData = computed(() => {
+          let d = [...filteredData.value];
+          if (sortKey.value) { d.sort((a, b) => { const av = a[sortKey.value], bv = b[sortKey.value]; const m = sortOrder.value === 'ascend' ? 1 : -1; if (typeof av === 'number') return (av - bv) * m; return String(av).localeCompare(String(bv)) * m; }) }
+          const s = (page.value - 1) * pageSize.value; return d.slice(s, s + pageSize.value);
+        });
+        const totalFiltered = computed(() => filteredData.value.length);
+
+        function handleSorterChange(key, order) { sortKey.value = key; sortOrder.value = order; }
+        function handleDelete(row) { msg.success('Dataset ' + row.name + ' deleted (mock)'); }
+        function startInlineEdit(row) { inlineEditId.value = row.id; inlineEditVal.value = row.name; }
+        function saveInlineEdit(row) { row.name = inlineEditVal.value; inlineEditId.value = null; msg.success('Name updated'); }
+        function handleBulkAction(action) { msg.info('Bulk ' + action + ' on ' + checkedKeys.value.length + ' items (mock)'); }
+        function openCreate() { editingDs.value = null; formValue.name = ''; formValue.type = null; formValue.format = null; formValue.description = ''; showModal.value = true; }
+        function openEdit(row) { editingDs.value = row; formValue.name = row.name; formValue.type = row.type; formValue.format = row.format; formValue.description = row.description; showModal.value = true; }
+        function handleFormSubmit() { showModal.value = false; msg.success(editingDs.value ? 'Dataset updated' : 'Dataset created'); }
+
+        const typeOptions = DS_TYPES.map(t => ({ label: t, value: t }));
+        const statusOptions = ['Active', 'Archived', 'Processing', 'Error'].map(s => ({ label: s, value: s }));
+        const formatOptions = DS_FORMATS.map(f => ({ label: f, value: f }));
+
+        const columns = computed(() => {
+          const c = [];
+          if (columnVisibility.id) c.push({ title: 'ID', key: 'id', width: 90, sorter: true, ellipsis: { tooltip: true } });
+          if (columnVisibility.name) c.push({ title: 'Name', key: 'name', sorter: true, width: 200, ellipsis: { tooltip: true }, render: (row) => inlineEditId.value === row.id ? h(naive.NInputGroup, { size: 'small', style: { width: '180px' } }, { default: () => [h(naive.NInput, { value: inlineEditVal.value, onUpdateValue: v => inlineEditVal.value = v, size: 'small', onKeydown: e => { if (e.key === 'Enter') saveInlineEdit(row); if (e.key === 'Escape') inlineEditId.value = null; } }), h(naive.NButton, { size: 'small', type: 'primary', onClick: () => saveInlineEdit(row) }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.check }) })] }) : h('span', { style: { cursor: 'pointer' }, onDblclick: () => startInlineEdit(row) }, row.name) });
+          if (columnVisibility.type) c.push({ title: 'Type', key: 'type', width: 160, filter: true, filterOptions: typeOptions, render: row => h(naive.NTag, { size: 'small', bordered: false, type: 'info' }, { default: () => row.type }) });
+          if (columnVisibility.format) c.push({ title: 'Format', key: 'format', width: 120 });
+          if (columnVisibility.samples) c.push({ title: 'Samples', key: 'samples', width: 110, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)', fontWeight: '500' } }, row.samples.toLocaleString()) });
+          if (columnVisibility.size) c.push({ title: 'Size', key: 'size', width: 90, sorter: true, render: row => h('span', {}, row.size >= 1000 ? (row.size / 1000).toFixed(1) + ' TB' : row.size + ' GB') });
+          if (columnVisibility.owner) c.push({ title: 'Owner', key: 'owner', width: 130 });
+          if (columnVisibility.status) c.push({ title: 'Status', key: 'status', width: 100, filter: true, filterOptions: statusOptions, render: row => { const t = { Active: 'success', Archived: 'default', Processing: 'warning', Error: 'error' }[row.status] || 'default'; return h(naive.NTag, { size: 'small', type: t, bordered: false }, { default: () => row.status }); } });
+          if (columnVisibility.quality) c.push({ title: 'Quality', key: 'quality', width: 90, render: row => { const c = { High: 'success', Medium: 'warning', Low: 'error', Unknown: 'default' }[row.quality]; return h(naive.NTag, { size: 'small', type: c, bordered: false }, { default: () => row.quality }); } });
+          if (columnVisibility.tags) c.push({ title: 'Tags', key: 'tags', width: 180, render: row => h(naive.NSpace, { size: 4, wrap: true }, { default: () => row.tags.slice(0, 3).map(t => h(naive.NTag, { size: 'tiny', bordered: false, type: { image: 'info', text: 'success', audio: 'warning' }[t] || 'default' }, { default: () => t })) }) });
+          if (columnVisibility.created) c.push({ title: 'Updated', key: 'updated', width: 110, sorter: true, render: row => fmtDate(row.updated) });
+          c.push({ title: 'Actions', key: 'actions', width: 140, fixed: 'right', render: row => h(naive.NSpace, { size: 4 }, { default: () => [h(naive.NTooltip, {}, { trigger: () => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'primary', onClick: () => openEdit(row) }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.edit }) }), default: () => 'Edit' }), h(naive.NTooltip, {}, { trigger: () => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'info' }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.eye }) }), default: () => 'View' }), h(naive.NPopconfirm, { onPositiveClick: () => handleDelete(row) }, { trigger: () => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'error' }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.trash }) }), default: () => 'Delete this dataset?' })] }) });
+          return c;
+        });
+
+        return { datasets, filteredData, searchVal, typeFilter, statusFilter, checkedKeys, page, pageSize, pagedData, totalFiltered, columns, showModal, formValue, formRules, typeOptions, formatOptions, showColumnPicker, columnVisibility, inlineEditId, handleSorterChange, handleBulkAction, openCreate, handleFormSubmit, applyFilters, searchPrefix, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-space align="center">
+          <n-text strong style="font-size:16px;font-family:var(--font-display)">Datasets</n-text>
+          <n-badge :value="totalFiltered" type="info" :max="999"/>
+        </n-space>
+        <n-space>
+          <n-button size="small" quaternary @click="showColumnPicker=!showColumnPicker"><n-icon :size="16" style="margin-right:4px"><icon name="column"/></n-icon>Columns</n-button>
+          <n-button size="small" type="primary" @click="openCreate"><n-icon :size="14" style="margin-right:4px"><icon name="plus"/></n-icon>New Dataset</n-button>
+        </n-space>
+      </n-space>
+      <n-card size="small" :bordered="true" v-if="showColumnPicker" style="margin-bottom:12px">
+        <n-space>
+          <n-checkbox v-for="(v,k) in columnVisibility" :key="k" v-model:checked="columnVisibility[k]">{{k}}</n-checkbox>
+        </n-space>
+      </n-card>
+      <n-card size="small" :bordered="true">
+        <div class="filter-bar">
+          <n-input v-model:value="searchVal" placeholder="Search datasets..." clearable size="small" style="width:240px" :input-props="{prefix:searchPrefix}"/>
+          <n-select v-model:value="typeFilter" placeholder="Type" clearable size="small" :options="$options.typeOptions" style="width:180px"/>
+          <n-select v-model:value="statusFilter" placeholder="Status" clearable size="small" :options="$options.statusOptions" style="width:130px"/>
+          <n-button size="small" quaternary @click="searchVal='';typeFilter=null;statusFilter=null"><n-icon :size="14"><icon name="refresh"/></n-icon></n-button>
+          <template v-if="checkedKeys.length">
+            <n-divider vertical/>
+            <n-text depth="3" style="font-size:12px">{{checkedKeys.length}} selected</n-text>
+            <n-button size="tiny" type="warning" @click="handleBulkAction('archive')">Archive</n-button>
+            <n-button size="tiny" type="error" @click="handleBulkAction('delete')">Delete</n-button>
+            <n-button size="tiny" type="info" @click="handleBulkAction('export')">Export</n-button>
+          </template>
+        </div>
+        <n-data-table :columns="columns" :data="pagedData" :row-key="r=>r.id" :pagination="{page:page,pageSize:pageSize,pageCount:Math.ceil(totalFiltered/pageSize),showSizePicker:true,pageSizes:[10,20,50,100],prefix:({itemCount})=>\`Total \${itemCount} items\`,onChange:(p)=>page=p,onUpdatePageSize:(s)=>{pageSize=s;page=1}}" :checked-row-keys="checkedKeys" @update:checked-row-keys="k=>checkedKeys=k" :scroll-x="1600" size="small" :max-height="520" virtual-scroll striped :sorter="true" @update:sorter="handleSorterChange" :row-props="r=>({style:'cursor:pointer'})" :loading="false"/>
+      </n-card>
+      <n-modal v-model:show="showModal" preset="dialog" :title="formValue.name&&datasets.find(d=>d.name===formValue.name)?'Edit Dataset':'Create Dataset'" style="width:560px" :show-icon="false">
+        <n-form :model="formValue" :rules="formRules" label-placement="left" label-width="80" style="margin-top:16px">
+          <n-form-item label="Name" path="name"><n-input v-model:value="formValue.name" placeholder="Enter dataset name"/></n-form-item>
+          <n-form-item label="Type" path="type"><n-select v-model:value="formValue.type" :options="typeOptions" placeholder="Select type"/></n-form-item>
+          <n-form-item label="Format"><n-select v-model:value="formValue.format" :options="$options.formatOptions" placeholder="Select format" clearable/></n-form-item>
+          <n-form-item label="Description"><n-input v-model:value="formValue.description" type="textarea" :rows="3" placeholder="Describe this dataset"/></n-form-item>
+        </n-form>
+        <template #action><n-button @click="showModal=false">Cancel</n-button><n-button type="primary" @click="handleFormSubmit">Save</n-button></template>
+      </n-modal>
+    </div>
+  `,
+      typeOptions: DS_TYPES.map(t => ({ label: t, value: t })),
+      statusOptions: ['Active', 'Archived', 'Processing', 'Error'].map(s => ({ label: s, value: s })),
+      formatOptions: DS_FORMATS.map(f => ({ label: f, value: f })),
+    });
+
+    /* ── Model Management View ── */
+    const ModelView = defineComponent({
+      setup() {
+        const msg = inject('message'); const models = genModels(55);
+        const viewMode = ref('table'); const searchVal = ref(''); const fwFilter = ref(null); const stFilter = ref(null);
+        const page = ref(1); const pageSize = ref(15); const showDetail = ref(false); const selectedModel = ref(null);
+        const filtered = computed(() => { let d = models; if (searchVal.value) d = d.filter(x => x.name.toLowerCase().includes(searchVal.value.toLowerCase())); if (fwFilter.value) d = d.filter(x => x.framework === fwFilter.value); if (stFilter.value) d = d.filter(x => x.status === stFilter.value); return d; });
+        const paged = computed(() => { const s = (page.value - 1) * pageSize.value; return filtered.value.slice(s, s + pageSize.value); });
+        const fwOpts = MOD_FRAMEWORKS.map(f => ({ label: f, value: f })); const stOpts = MOD_STATUSES.map(s => ({ label: s, value: s }));
+        const columns = [
+          { title: 'Model', key: 'name', sorter: true, render: row => h('span', { style: { fontWeight: '600' } }, row.name) },
+          { title: 'Framework', key: 'framework', width: 110, filter: true, filterOptions: fwOpts, render: row => h(naive.NTag, { size: 'small', bordered: false, type: 'info' }, { default: () => row.framework }) },
+          { title: 'Params', key: 'params', width: 100, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)' } }, row.params >= 1000 ? (row.params / 1000).toFixed(0) + 'B' : row.params + 'M') },
+          { title: 'Accuracy', key: 'accuracy', width: 100, sorter: true, render: row => h(naive.NProgress, { type: 'line', percentage: row.accuracy, indicatorPlacement: 'inside', height: 18, status: row.accuracy > 90 ? 'success' : row.accuracy > 80 ? 'warning' : 'error', style: { width: '90px' } }) },
+          { title: 'Status', key: 'status', width: 100, filter: true, filterOptions: stOpts, render: row => { const t = { Published: 'success', Draft: 'warning', Archived: 'default', Deprecated: 'error' }; return h(naive.NTag, { size: 'small', type: t[row.status], bordered: false }, { default: () => row.status }); } },
+          { title: 'Deployments', key: 'deployments', width: 100, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)', fontWeight: '600' } }, row.deployments) },
+          { title: 'Owner', key: 'owner', width: 130 },
+          { title: 'Actions', key: 'actions', width: 100, fixed: 'right', render: row => h(naive.NSpace, { size: 4 }, { default: () => [h(naive.NButton, { size: 'tiny', quaternary: true, type: 'primary', onClick: () => { selectedModel.value = row; showDetail.value = true; } }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.eye }) }), h(naive.NButton, { size: 'tiny', quaternary: true, type: 'info', onClick: () => msg.info('Download started (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.download }) })] }) },
+        ];
+        function openModel(m) { selectedModel.value = m; showDetail.value = true; }
+        return { models, viewMode, searchVal, fwFilter, stFilter, page, pageSize, filtered, paged, columns, fwOpts, stOpts, showDetail, selectedModel, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-space align="center"><n-text strong style="font-size:16px;font-family:var(--font-display)">Models</n-text><n-badge :value="filtered.length" type="info"/></n-space>
+        <n-space>
+          <n-input-group><n-input v-model:value="searchVal" placeholder="Search models..." clearable size="small" style="width:220px"/><n-button size="small" type="primary" ghost><n-icon><icon name="search"/></n-icon></n-button></n-input-group>
+          <n-select v-model:value="fwFilter" placeholder="Framework" clearable size="small" :options="fwOpts" style="width:140px"/>
+          <n-select v-model:value="stFilter" placeholder="Status" clearable size="small" :options="stOpts" style="width:120px"/>
+          <n-button-group size="small"><n-button :type="viewMode==='table'?'primary':'default'" @click="viewMode='table'"><n-icon><icon name="column"/></n-icon></n-button><n-button :type="viewMode==='card'?'primary':'default'" @click="viewMode='card'"><n-icon><icon name="dashboard"/></n-icon></n-button></n-button-group>
+        </n-space>
+      </n-space>
+      <template v-if="viewMode==='table'">
+        <n-card size="small" :bordered="true">
+          <n-data-table :columns="columns" :data="paged" :row-key="r=>r.id" :pagination="{page,pageSize,pageCount:Math.ceil(filtered.length/pageSize),showSizePicker:true,pageSizes:[10,15,30,50],onChange:p=>page=p,onUpdatePageSize:s=>{pageSize=s;page=1}}" :scroll-x="1100" size="small" :max-height="520" virtual-scroll striped/>
+        </n-card>
+      </template>
+      <template v-else>
+        <n-grid :x-gap="14" :y-gap="14" :cols="4" responsive="screen" item-responsive>
+          <n-gi v-for="m in paged" :key="m.id" span="4 m:2 l:1">
+            <n-card size="small" :bordered="true" hoverable style="cursor:pointer" @click="openModel(m)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <n-text strong style="font-size:14px">{{m.name}}</n-text>
+                <n-tag :type="{Published:'success',Draft:'warning',Archived:'default',Deprecated:'error'}[m.status]" size="small" :bordered="false">{{m.status}}</n-tag>
+              </div>
+              <n-space size=4 style="margin-bottom:8px"><n-tag size="small" :bordered="false" type="info">{{m.framework}}</n-tag><n-tag size="small" :bordered="false">{{m.type}}</n-tag></n-space>
+              <n-progress type="line" :percentage="m.accuracy" :show-indicator="true" indicator-placement="inside" :height="16" :status="m.accuracy>90?'success':'warning'" style="margin-bottom:8px"/>
+              <n-space justify="space-between"><n-text depth="3" style="font-size:11px">{{m.owner}}</n-text><n-text depth="3" style="font-size:11px">{{m.deployments}} deps</n-text></n-space>
+            </n-card>
+          </n-gi>
+        </n-grid>
+        <n-space justify="center" style="margin-top:16px"><n-pagination :page="page" :page-count="Math.ceil(filtered.length/pageSize)" :page-size="pageSize" @update:page="p=>page=p"/></n-space>
+      </template>
+      <n-drawer v-model:show="showDetail" :width="520" placement="right">
+        <n-drawer-content :title="selectedModel?.name" closable>
+          <template v-if="selectedModel">
+            <n-descriptions label-placement="left" :column="1" bordered size="small">
+              <n-descriptions-item label="Framework">{{selectedModel.framework}}</n-descriptions-item>
+              <n-descriptions-item label="Parameters">{{selectedModel.params>=1000?(selectedModel.params/1000).toFixed(0)+'B':selectedModel.params+'M'}}</n-descriptions-item>
+              <n-descriptions-item label="Accuracy"><n-text :type="selectedModel.accuracy>90?'success':'warning'" strong>{{selectedModel.accuracy}}%</n-text></n-descriptions-item>
+              <n-descriptions-item label="Type">{{selectedModel.type}}</n-descriptions-item>
+              <n-descriptions-item label="Task">{{selectedModel.task}}</n-descriptions-item>
+              <n-descriptions-item label="License">{{selectedModel.license}}</n-descriptions-item>
+              <n-descriptions-item label="Owner">{{selectedModel.owner}}</n-descriptions-item>
+              <n-descriptions-item label="Team">{{selectedModel.team}}</n-descriptions-item>
+              <n-descriptions-item label="Version">{{selectedModel.version}}</n-descriptions-item>
+              <n-descriptions-item label="Created">{{fmtDate(selectedModel.created)}}</n-descriptions-item>
+              <n-descriptions-item label="Trainings">{{selectedModel.trainings}}</n-descriptions-item>
+              <n-descriptions-item label="Evaluations">{{selectedModel.evaluations}}</n-descriptions-item>
+            </n-descriptions>
+            <n-divider>Description</n-divider>
+            <n-text depth="2" style="font-size:13px">{{selectedModel.description}}</n-text>
+            <n-divider>Tags</n-divider>
+            <n-space><n-tag v-for="t in selectedModel.tags" :key="t" size="small" :bordered="false" type="info">{{t}}</n-tag></n-space>
+            <n-divider>Actions</n-divider>
+            <n-space>
+              <n-button type="primary" size="small"><n-icon style="margin-right:4px"><icon name="rocket"/></n-icon>Deploy</n-button>
+              <n-button size="small"><n-icon style="margin-right:4px"><icon name="train"/></n-icon>Train</n-button>
+              <n-button size="small"><n-icon style="margin-right:4px"><icon name="eval"/></n-icon>Evaluate</n-button>
+              <n-button size="small"><n-icon style="margin-right:4px"><icon name="download"/></n-icon>Download</n-button>
+            </n-space>
+          </template>
+        </n-drawer-content>
+      </n-drawer>
+    </div>
+  `
+    });
+
+    /* ── Deployment Management View ── */
+    const DeployView = defineComponent({
+      setup() {
+        const msg = inject('message'); const deploys = genDeployments(220);
+        const envFilter = ref(null); const stFilter = ref(null); const searchVal = ref('');
+        const page = ref(1); const pageSize = ref(15);
+        const filtered = computed(() => { let d = deploys; if (searchVal.value) d = d.filter(x => x.name.includes(searchVal.value) || x.model.includes(searchVal.value)); if (envFilter.value) d = d.filter(x => x.environment === envFilter.value); if (stFilter.value) d = d.filter(x => x.status === stFilter.value); return d; });
+        const paged = computed(() => { const s = (page.value - 1) * pageSize.value; return filtered.value.slice(s, s + pageSize.value); });
+        const envOpts = DEPLOY_ENVS.map(e => ({ label: e, value: e })); const stOpts = DEPLOY_STATUSES.map(s => ({ label: s, value: s }));
+        function stColor(s) { return { Running: 'success', Stopped: 'default', Failed: 'error', Scaling: 'warning', Updating: 'info', Draining: 'warning' }[s] || 'default'; }
+        function envColor(e) { return { Production: '#0D9488', Staging: '#f59e0b', Development: '#8b5cf6', Canary: '#06b6d4', Edge: '#ef4444' }[e] || '#888'; }
+        const columns = [
+          { type: 'expand', expandable: (row) => row.status === 'Running', renderExpand: row => h('div', { style: { padding: '8px 0' } }, [h(naive.NDescriptions, { labelPlacement: 'left', column: 3, bordered: true, size: 'small' }, { default: () => [h(naive.NDescriptionsItem, { label: 'Endpoint' }, { default: () => row.endpoint }), h(naive.NDescriptionsItem, { label: 'P50 Latency' }, { default: () => row.latencyP50 + 'ms' }), h(naive.NDescriptionsItem, { label: 'P99 Latency' }, { default: () => row.latencyP99 + 'ms' }), h(naive.NDescriptionsItem, { label: 'Error Rate' }, { default: () => h(naive.NText, { type: row.errorRate > 1 ? 'error' : 'success' }, { default: () => row.errorRate + '%' }) }), h(naive.NDescriptionsItem, { label: 'Auto-Scale' }, { default: () => h(naive.NTag, { size: 'small', type: row.autoScale ? 'success' : 'default', bordered: false }, { default: () => row.autoScale ? 'Enabled' : 'Disabled' }) }), h(naive.NDescriptionsItem, { label: 'Region' }, { default: () => row.region })] })]) },
+          { title: 'Deployment', key: 'name', width: 200, ellipsis: { tooltip: true }, render: row => h(naive.NSpace, { align: 'center', size: 8 }, { default: () => [h('span', { class: row.status === 'Running' ? 'status-dot pulse' : 'status-dot', style: { background: stColor(row.status) === 'success' ? '#0D9488' : stColor(row.status) === 'error' ? '#ef4444' : '#f59e0b' } }), h('span', { style: { fontWeight: '600', fontSize: '13px' } }, row.name)] }) },
+          { title: 'Model', key: 'model', width: 160, ellipsis: { tooltip: true } },
+          { title: 'Environment', key: 'environment', width: 120, filter: true, filterOptions: envOpts, render: row => { const ec = envColor(row.environment); return h(naive.NTag, { size: 'small', bordered: false, style: { color: ec, borderColor: ec, background: ec + '18' } }, { default: () => row.environment }); } },
+          { title: 'Status', key: 'status', width: 100, filter: true, filterOptions: stOpts, render: row => h(naive.NTag, { size: 'small', type: stColor(row.status), bordered: false }, { default: () => row.status }) },
+          { title: 'Replicas', key: 'replicas', width: 80, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)', fontWeight: '600' } }, row.replicas) },
+          { title: 'Req/s', key: 'requestsPerSec', width: 80, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)' } }, row.requestsPerSec.toLocaleString()) },
+          { title: 'GPU', key: 'gpu', width: 80 },
+          { title: 'Deployed By', key: 'deployedBy', width: 130 },
+          { title: 'Actions', key: 'actions', width: 120, fixed: 'right', render: row => h(naive.NSpace, { size: 4 }, { default: () => { const btns = []; if (row.status === 'Running') btns.push(h(naive.NButton, { size: 'tiny', quaternary: true, type: 'warning', onClick: () => msg.info('Stopping ' + row.name + ' (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.close }) })); else if (row.status === 'Stopped') btns.push(h(naive.NButton, { size: 'tiny', quaternary: true, type: 'success', onClick: () => msg.success('Starting ' + row.name + ' (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.zap }) })); btns.push(h(naive.NButton, { size: 'tiny', quaternary: true, type: 'info', onClick: () => msg.info('Viewing logs (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.terminal }) })); return btns; } }) },
+        ];
+        const statusSummary = computed(() => { const m = {}; deploys.forEach(d => { m[d.status] = (m[d.status] || 0) + 1; }); return Object.entries(m).map(([k, v]) => ({ label: k, value: v, color: stColor(k) })); });
+        return { deploys, searchVal, envFilter, stFilter, page, pageSize, filtered, paged, columns, envOpts, stOpts, statusSummary, stColor, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-space align="center"><n-text strong style="font-size:16px;font-family:var(--font-display)">Deployments</n-text><n-badge :value="filtered.length" type="info"/></n-space>
+        <n-space>
+          <n-input v-model:value="searchVal" placeholder="Search..." clearable size="small" style="width:200px"/>
+          <n-select v-model:value="envFilter" placeholder="Environment" clearable size="small" :options="envOpts" style="width:140px"/>
+          <n-select v-model:value="stFilter" placeholder="Status" clearable size="small" :options="stOpts" style="width:120px"/>
+          <n-button type="primary" size="small"><n-icon style="margin-right:4px"><icon name="rocket"/></n-icon>New Deployment</n-button>
+        </n-space>
+      </n-space>
+      <n-grid :x-gap="12" :y-gap="12" :cols="6" style="margin-bottom:16px">
+        <n-gi v-for="s in statusSummary" :key="s.label"><n-card size="small" :bordered="true"><n-statistic :value="s.value" :label="s.label"><template #prefix><span class="status-dot" :style="{background:s.color==='success'?'#0D9488':s.color==='error'?'#ef4444':s.color==='warning'?'#f59e0b':'#06b6d4'}"></span></template></n-statistic></n-card></n-gi>
+      </n-grid>
+      <n-card size="small" :bordered="true">
+        <n-data-table :columns="columns" :data="paged" :row-key="r=>r.id" :pagination="{page,pageSize,pageCount:Math.ceil(filtered.length/pageSize),showSizePicker:true,pageSizes:[10,15,30,50],onChange:p=>page=p,onUpdatePageSize:s=>{pageSize=s;page=1}}" :scroll-x="1300" size="small" :max-height="480" virtual-scroll striped/>
+      </n-card>
+    </div>
+  `
+    });
+
+    /* ── Training Management View (Wizard) ── */
+    const TrainingView = defineComponent({
+      setup() {
+        const msg = inject('message'); const trainings = genTrainings(80);
+        const showWizard = ref(false); const currentStep = ref(0);
+        const wizardData = reactive({ model: null, dataset: null, name: '', epochs: 50, batchSize: 32, learningRate: 0.001, optimizer: 'AdamW', hardware: 'A100 x8', notes: '' });
+        const searchVal = ref(''); const stFilter = ref(null); const page = ref(1); const pageSize = ref(15);
+        const filtered = computed(() => { let d = trainings; if (searchVal.value) d = d.filter(x => x.name.includes(searchVal.value) || x.model.includes(searchVal.value)); if (stFilter.value) d = d.filter(x => x.status === stFilter.value); return d; });
+        const paged = computed(() => filtered.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+        const modelOpts = genModels(55).slice(0, 20).map(m => ({ label: m.name, value: m.name })); const dsOpts = genDatasets(120).slice(0, 20).map(d => ({ label: d.name, value: d.name })); const hwOpts = ['A100 x8', 'H100 x4', 'A10G x2', 'V100 x4', 'T4 x8'].map(h => ({ label: h, value: h })); const optOpts = ['AdamW', 'SGD', 'Adam', 'LAMB', 'Adafactor', 'Lion'].map(o => ({ label: o, value: o }));
+        function startWizard() { currentStep.value = 0; wizardData.model = null; wizardData.dataset = null; wizardData.name = ''; wizardData.epochs = 50; wizardData.batchSize = 32; wizardData.learningRate = 0.001; wizardData.optimizer = 'AdamW'; wizardData.hardware = 'A100 x8'; wizardData.notes = ''; showWizard.value = true; }
+        function finishWizard() { showWizard.value = false; msg.success('Training job submitted (mock)'); }
+        function stColor(s) { return { Completed: 'success', Running: 'info', Queued: 'warning', Failed: 'error', Cancelled: 'default' }[s] || 'default'; }
+        const columns = [
+          { title: 'Training Run', key: 'name', width: 160, render: row => h('span', { style: { fontWeight: '600', fontSize: '13px' } }, row.name) },
+          { title: 'Model', key: 'model', width: 160, ellipsis: { tooltip: true } },
+          { title: 'Dataset', key: 'dataset', width: 160, ellipsis: { tooltip: true } },
+          { title: 'Status', key: 'status', width: 110, render: row => h(naive.NTag, { size: 'small', type: stColor(row.status), bordered: false }, { default: () => row.status }) },
+          {
+            title: 'Progress', key: 'progress', width: 160, render: row => h(naive.NSpace, { align: 'center', size: 8 }, { default: () => [h(naive.NProgress, { type: 'line', percentage: Math.round(row.currentEpoch / row.epochs * 100), height: 14, status: stColor(row.status), style: { flex: 1 } }), h(naive.NText, { depth: 3, style: { fontSize: '11px', whiteSpace: 'nowrap' } }, { default: () => row.currentEpoch + '/' + row.epochs })] }),
+            sorter: (a, b) => a.currentEpoch / a.epochs - b.currentEpoch / b.epochs
+          },
+          { title: 'Duration', key: 'duration', width: 80 },
+          { title: 'GPU Hours', key: 'gpuHours', width: 90, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)' } }, row.gpuHours.toLocaleString()) },
+          { title: 'Cost', key: 'cost', width: 90, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)' } }, '$' + row.cost.toLocaleString()) },
+          { title: 'Created By', key: 'createdBy', width: 130 },
+          { title: 'Actions', key: 'actions', width: 80, fixed: 'right', render: row => row.status === 'Running' ? h(naive.NPopconfirm, { onPositiveClick: () => msg.info('Stopping training (mock)') }, { trigger: () => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'warning' }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.close }) }), default: () => 'Stop this training?' }) : null },
+        ];
+        const stOpts = ['Completed', 'Running', 'Queued', 'Failed', 'Cancelled'].map(s => ({ label: s, value: s }));
+        const summary = computed(() => { const m = { Running: 0, Queued: 0, Completed: 0, Failed: 0 }; trainings.forEach(t => { if (m[t.status] !== undefined) m[t.status]++; }); return m; });
+        return { trainings, showWizard, currentStep, wizardData, searchVal, stFilter, page, pageSize, filtered, paged, columns, modelOpts, dsOpts, hwOpts, optOpts, startWizard, finishWizard, stColor, stOpts, summary, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-space align="center"><n-text strong style="font-size:16px;font-family:var(--font-display)">Training Management</n-text></n-space>
+        <n-space>
+          <n-input v-model:value="searchVal" placeholder="Search..." clearable size="small" style="width:200px"/>
+          <n-select v-model:value="stFilter" placeholder="Status" clearable size="small" :options="stOpts" style="width:130px"/>
+          <n-button type="primary" size="small" @click="startWizard"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>New Training</n-button>
+        </n-space>
+      </n-space>
+      <n-grid :x-gap="12" :y-gap="12" :cols="5" style="margin-bottom:16px">
+        <n-gi v-for="(v,k) in summary" :key="k"><n-card size="small" :bordered="true"><n-statistic :value="v" :label="k"><template #prefix><span class="status-dot" :style="{background:k==='Running'?'#06b6d4':k==='Queued'?'#f59e0b':k==='Completed'?'#0D9488':'#ef4444'}"></span></template></n-statistic></n-card></n-gi>
+      </n-grid>
+      <n-card size="small" :bordered="true">
+        <n-data-table :columns="columns" :data="paged" :row-key="r=>r.id" :pagination="{page,pageSize,pageCount:Math.ceil(filtered.length/pageSize),showSizePicker:true,pageSizes:[10,15,30],onChange:p=>page=p,onUpdatePageSize:s=>{pageSize=s;page=1}}" :scroll-x="1200" size="small" :max-height="440" virtual-scroll striped/>
+      </n-card>
+      <n-modal v-model:show="showWizard" preset="card" title="New Training Job" style="width:680px" :mask-closable="false">
+        <n-steps :current="currentStep+1" style="margin-bottom:8px">
+          <n-step title="Select Resources"/><n-step title="Hyperparameters"/><n-step title="Review & Launch"/>
+        </n-steps>
+        <div class="wizard-step-content">
+          <template v-if="currentStep===0">
+            <n-form label-placement="left" label-width="100">
+              <n-form-item label="Job Name"><n-input v-model:value="wizardData.name" placeholder="e.g. Training Run #81"/></n-form-item>
+              <n-form-item label="Model"><n-select v-model:value="wizardData.model" :options="modelOpts" placeholder="Select a model" filterable/></n-form-item>
+              <n-form-item label="Dataset"><n-select v-model:value="wizardData.dataset" :options="dsOpts" placeholder="Select a dataset" filterable/></n-form-item>
+              <n-form-item label="Hardware"><n-select v-model:value="wizardData.hardware" :options="hwOpts"/></n-form-item>
+            </n-form>
+          </template>
+          <template v-if="currentStep===1">
+            <n-form label-placement="left" label-width="120">
+              <n-form-item label="Epochs"><n-input-number v-model:value="wizardData.epochs" :min="1" :max="1000" style="width:100%"/></n-form-item>
+              <n-form-item label="Batch Size"><n-select v-model:value="wizardData.batchSize" :options="[8,16,32,64,128,256,512].map(b=>({label:b,value:b}))"/></n-form-item>
+              <n-form-item label="Learning Rate"><n-input-number v-model:value="wizardData.learningRate" :min="0.000001" :max="1" :step="0.0001" style="width:100%"/></n-form-item>
+              <n-form-item label="Optimizer"><n-select v-model:value="wizardData.optimizer" :options="optOpts"/></n-form-item>
+            </n-form>
+          </template>
+          <template v-if="currentStep===2">
+            <n-alert type="info" title="Review Configuration" style="margin-bottom:16px">Please verify the following configuration before launching the training job.</n-alert>
+            <n-descriptions label-placement="left" :column="2" bordered size="small">
+              <n-descriptions-item label="Job Name">{{wizardData.name||'Untitled'}}</n-descriptions-item>
+              <n-descriptions-item label="Hardware">{{wizardData.hardware}}</n-descriptions-item>
+              <n-descriptions-item label="Model" :span="2">{{wizardData.model||'Not selected'}}</n-descriptions-item>
+              <n-descriptions-item label="Dataset" :span="2">{{wizardData.dataset||'Not selected'}}</n-descriptions-item>
+              <n-descriptions-item label="Epochs">{{wizardData.epochs}}</n-descriptions-item>
+              <n-descriptions-item label="Batch Size">{{wizardData.batchSize}}</n-descriptions-item>
+              <n-descriptions-item label="Learning Rate">{{wizardData.learningRate}}</n-descriptions-item>
+              <n-descriptions-item label="Optimizer">{{wizardData.optimizer}}</n-descriptions-item>
+            </n-descriptions>
+            <n-divider style="margin:16px 0 8px">Notes</n-divider>
+            <n-input v-model:value="wizardData.notes" type="textarea" :rows="2" placeholder="Optional notes..."/>
+          </template>
+        </div>
+        <template #action>
+          <n-space>
+            <n-button v-if="currentStep>0" @click="currentStep--">Previous</n-button>
+            <n-button v-if="currentStep<2" type="primary" @click="currentStep++" :disabled="currentStep===0&&!wizardData.model">Next</n-button>
+            <n-button v-if="currentStep===2" type="primary" @click="finishWizard"><n-icon style="margin-right:4px"><icon name="rocket"/></n-icon>Launch Training</n-button>
+            <n-button @click="showWizard=false">Cancel</n-button>
+          </n-space>
+        </template>
+      </n-modal>
+    </div>
+  `
+    });
+
+    /* ── Evaluation Management View ── */
+    const EvalView = defineComponent({
+      setup() {
+        const msg = inject('message'); const evals = genEvaluations(150);
+        const page = ref(1); const pageSize = ref(15); const searchVal = ref('');
+        const filtered = computed(() => searchVal.value ? evals.filter(e => e.name.includes(searchVal.value)) : evals);
+        const paged = computed(() => filtered.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+        function stColor(s) { return { Completed: 'success', Running: 'info', Failed: 'error' }[s] || 'default'; }
+        const columns = [
+          { title: 'Evaluation', key: 'name', width: 220, ellipsis: { tooltip: true }, render: row => h('span', { style: { fontWeight: '600', fontSize: '13px' } }, row.name) },
+          { title: 'Model', key: 'model', width: 140, ellipsis: { tooltip: true } },
+          { title: 'Dataset', key: 'dataset', width: 140, ellipsis: { tooltip: true } },
+          { title: 'Status', key: 'status', width: 100, render: row => h(naive.NTag, { size: 'small', type: stColor(row.status), bordered: false }, { default: () => row.status }) },
+          { title: 'Key Metrics', key: 'metrics', width: 280, render: row => h(naive.NSpace, { size: 6, wrap: true }, { default: () => Object.entries(row.metrics).slice(0, 3).map(([k, v]) => h(naive.NTag, { size: 'tiny', bordered: false, type: v > 85 ? 'success' : v > 70 ? 'warning' : 'error' }, { default: () => k + ': ' + v + '%' })) }) },
+          { title: 'Duration', key: 'duration', width: 80 },
+          { title: 'Created By', key: 'createdBy', width: 130 },
+          { title: 'Actions', key: 'actions', width: 80, render: row => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'primary', onClick: () => msg.info('Opening comparison view (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.target }) }) },
+        ];
+        return { evals, searchVal, page, pageSize, filtered, paged, columns, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-text strong style="font-size:16px;font-family:var(--font-display)">Evaluations</n-text>
+        <n-space><n-input v-model:value="searchVal" placeholder="Search evaluations..." clearable size="small" style="width:240px"/><n-button type="primary" size="small"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>New Evaluation</n-button></n-space>
+      </n-space>
+      <n-card size="small" :bordered="true">
+        <n-data-table :columns="columns" :data="paged" :row-key="r=>r.id" :pagination="{page,pageSize,pageCount:Math.ceil(filtered.length/pageSize),showSizePicker:true,pageSizes:[10,15,30,50],onChange:p=>page=p,onUpdatePageSize:s=>{pageSize=s;page=1}}" :scroll-x="1100" size="small" :max-height="520" virtual-scroll striped/>
+      </n-card>
+    </div>
+  `
+    });
+
+    /* ── Data Labeling View (Split Pane) ── */
+    const LabelingView = defineComponent({
+      setup() {
+        const msg = inject('message');
+
+        const items = ref(
+          Array.from({ length: 20 }, (_, i) => ({
+            id: i + 1,
+            name: `sample_${String(i + 1).padStart(4, '0')}.jpg`,
+            status: pick([
+              'Labeled',
+              'Unlabeled',
+              'In Progress',
+              'Reviewed'
+            ]),
+            labels: Array.from(
+              { length: rand(0, 5) },
+              () =>
+                pick([
+                  'car',
+                  'person',
+                  'tree',
+                  'building',
+                  'sky',
+                  'road',
+                  'sign',
+                  'light'
+                ])
+            ),
+            confidence: rand(40, 99)
+          }))
+        );
+
+        const selectedIdx = ref(0);
+        const labelInput = ref('');
+
+        const selected = computed(
+          () => items.value[selectedIdx.value] ?? null
+        );
+
+        function addLabel() {
+          const label = labelInput.value.trim();
+
+          if (!label || !selected.value) {
+            return;
+          }
+
+          selected.value.labels.push(label);
+          labelInput.value = '';
+          msg?.success?.('Label added');
+        }
+
+        function removeLabel(label) {
+          if (!selected.value) {
+            return;
+          }
+
+          selected.value.labels =
+            selected.value.labels.filter(
+              x => x !== label
+            );
+        }
+
+        function updateLabels(v) {
+          if (selected.value) {
+            selected.value.labels = v;
+          }
+        }
+
+        function stColor(status) {
+          return (
+            {
+              Labeled: 'success',
+              'In Progress': 'warning',
+              Unlabeled: 'default',
+              Reviewed: 'info'
+            }[status] || 'default'
+          );
+        }
+
+        function confidenceStatus(v) {
+          if (v >= 80) {
+            return 'success';
+          }
+
+          if (v >= 60) {
+            return 'warning';
+          }
+
+          return 'error';
+        }
+
+        return {
+          items,
+          selectedIdx,
+          selected,
+          labelInput,
+          addLabel,
+          removeLabel,
+          updateLabels,
+          stColor,
+          confidenceStatus
+        };
+      },
+
+      template: `
+    <div class="fade-in" style="height:calc(100vh - 160px)">
+      <n-space
+        justify="space-between"
+        align="center"
+        style="margin-bottom:12px"
+      >
+        <n-text
+          strong
+          style="font-size:16px;font-family:var(--font-display)"
+        >
+          Data Labeling
+        </n-text>
+
+        <n-space>
+          <n-button
+            size="small"
+            type="primary"
+          >
+            Export Labels
+          </n-button>
+
+          <n-button size="small">
+            Import Annotations
+          </n-button>
+        </n-space>
+      </n-space>
+
+      <n-split
+        direction="horizontal"
+        :min="0.2"
+        :max="0.8"
+        :default-size="0.3"
+        style="height:calc(100% - 44px)"
+      >
+        <template #1>
+          <n-card
+            size="small"
+            style="height:100%"
+            content-style="
+              height:100%;
+              display:flex;
+              flex-direction:column;
+            "
+          >
+            <n-input
+              placeholder="Filter items..."
+              size="small"
+              clearable
+              style="margin-bottom:8px"
+            />
+
+            <n-scrollbar style="flex:1">
+              <div
+                v-for="(item, i) in items"
+                :key="item.id"
+                @click="selectedIdx = i"
+                :style="{
+                  padding:'10px 12px',
+                  borderRadius:'6px',
+                  cursor:'pointer',
+                  marginBottom:'4px',
+                  background:
+                    selectedIdx === i
+                      ? 'rgba(13,148,136,0.10)'
+                      : 'transparent',
+                  borderLeft:
+                    selectedIdx === i
+                      ? '3px solid #0D9488'
+                      : '3px solid transparent',
+                  transition:'all .15s'
+                }"
+              >
+                <n-space
+                  align="center"
+                  justify="space-between"
+                >
+                  <n-text
+                    style="
+                      font-size:13px;
+                      font-weight:500
+                    "
+                  >
+                    {{ item.name }}
+                  </n-text>
+
+                  <n-tag
+                    :type="stColor(item.status)"
+                    size="small"
+                    :bordered="false"
+                  >
+                    {{ item.status }}
+                  </n-tag>
+                </n-space>
+
+                <n-space
+                  :size="4"
+                  style="margin-top:4px"
+                >
+                  <n-tag
+                    v-for="l in item.labels.slice(0,3)"
+                    :key="l"
+                    size="small"
+                    type="info"
+                    :bordered="false"
+                  >
+                    {{ l }}
+                  </n-tag>
+
+                  <n-text
+                    v-if="item.labels.length > 3"
+                    depth="3"
+                    style="font-size:11px"
+                  >
+                    +{{ item.labels.length - 3 }}
+                  </n-text>
+                </n-space>
+              </div>
+            </n-scrollbar>
+          </n-card>
+        </template>
+
+        <template #2>
+          <n-card
+            v-if="selected"
+            size="small"
+            style="height:100%"
+          >
+            <n-grid
+              :cols="2"
+              :x-gap="16"
+            >
+              <n-gi>
+                <div
+                  style="
+                    aspect-ratio:4/3;
+                    background:linear-gradient(
+                      135deg,
+                      #1a1d27 0%,
+                      #252830 50%,
+                      #1a1d27 100%
+                    );
+                    border-radius:8px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    position:relative;
+                    overflow:hidden;
+                  "
+                >
+                  <n-text
+                    depth="3"
+                    style="
+                      font-size:13px;
+                      z-index:1;
+                    "
+                  >
+                    {{ selected.name }}
+                  </n-text>
+
+                  <div
+                    v-for="(l, i) in selected.labels"
+                    :key="l"
+                    :style="{
+                      position:'absolute',
+                      top:(10 + i * 28) + 'px',
+                      left:'10px',
+                      padding:'2px 8px',
+                      borderRadius:'4px',
+                      fontSize:'11px',
+                      background:
+                        'rgba(13,148,136,0.85)',
+                      color:'#fff'
+                    }"
+                  >
+                    {{ l }}
+                  </div>
+                </div>
+              </n-gi>
+
+              <n-gi>
+                <n-descriptions
+                  label-placement="top"
+                  :column="1"
+                  size="small"
+                  style="margin-bottom:16px"
+                >
+                  <n-descriptions-item label="File">
+                    <n-text code>
+                      {{ selected.name }}
+                    </n-text>
+                  </n-descriptions-item>
+
+                  <n-descriptions-item label="Status">
+                    <n-tag
+                      :type="stColor(selected.status)"
+                      size="small"
+                      :bordered="false"
+                    >
+                      {{ selected.status }}
+                    </n-tag>
+                  </n-descriptions-item>
+
+                  <n-descriptions-item label="Confidence">
+                    <n-progress
+                      type="line"
+                      :percentage="selected.confidence"
+                      :height="14"
+                      :status="
+                        confidenceStatus(
+                          selected.confidence
+                        )
+                      "
+                    />
+                  </n-descriptions-item>
+                </n-descriptions>
+
+                <n-text
+                  strong
+                  style="
+                    font-size:13px;
+                    display:block;
+                    margin-bottom:8px;
+                  "
+                >
+                  Labels
+                  ({{ selected.labels.length }})
+                </n-text>
+
+                <n-dynamic-tags
+                  :value="selected.labels"
+                  @update:value="updateLabels"
+                />
+
+                <n-divider />
+
+                <n-space>
+                  <n-button
+                    size="small"
+                    type="primary"
+                    @click="
+                      selected.status = 'Labeled'
+                    "
+                  >
+                    Mark Complete
+                  </n-button>
+
+                  <n-button
+                    size="small"
+                    @click="
+                      selected.status = 'Reviewed'
+                    "
+                  >
+                    Mark Reviewed
+                  </n-button>
+
+                  <n-button
+                    size="small"
+                    type="warning"
+                    @click="
+                      selected.status =
+                        'In Progress'
+                    "
+                  >
+                    Flag
+                  </n-button>
+                </n-space>
+              </n-gi>
+            </n-grid>
+          </n-card>
+        </template>
+      </n-split>
+    </div>
+  `
+    });
+
+    /* ── User Management View ── */
+    const UserView = defineComponent({
+      setup() {
+        const msg = inject('message');
+        const users = reactive(USERS.map((u, i) => ({ ...u, id: i + 1, status: pick(['Active', 'Active', 'Active', 'Inactive', 'Suspended']), lastLogin: dateBefore(14), createdAt: dateBefore(365) })));
+        const showUserModal = ref(false); const editingUser = ref(null);
+        const formValue = reactive({ name: '', email: '', role: null, org: null, team: null, status: 'Active' });
+        const roleOpts = [{ label: 'Admin', value: 'admin' }, { label: 'Manager', value: 'manager' }, { label: 'ML Engineer', value: 'engineer' }, { label: 'Data Scientist', value: 'data_scientist' }, { label: 'Viewer', value: 'viewer' }];
+        const orgOpts = ORGS.map(o => ({ label: o, value: o })); const teamOpts = TEAMS.map(t => ({ label: t, value: t }));
+        function openCreate() { editingUser.value = null; Object.assign(formValue, { name: '', email: '', role: null, org: null, team: null, status: 'Active' }); showUserModal.value = true; }
+        function openEdit(u) { editingUser.value = u; Object.assign(formValue, { name: u.name, email: u.email, role: u.role, org: u.org, team: u.team, status: u.status }); showUserModal.value = true; }
+        function saveUser() { showUserModal.value = false; msg.success(editingUser.value ? 'User updated' : 'User created'); }
+        function toggleStatus(u) { u.status = u.status === 'Active' ? 'Suspended' : 'Active'; msg.info(u.name + ' ' + u.status.toLowerCase()); }
+        const columns = [
+          {
+            title: 'User', key: 'name', render: row => h(naive.NSpace, { align: 'center', size: 12 }, { default: () => [h(naive.NAvatar, { round: true, size: 36, style: { background: row.status === 'Active' ? 'rgba(13,148,136,0.15)' : 'rgba(128,128,128,0.1)', color: row.status === 'Active' ? '#0D9488' : '#888', fontWeight: '600', fontSize: '13px' } }, { default: () => row.avatar }), h('div', {}, [h('div', { style: { fontWeight: '600', fontSize: '13px' } }, row.name), h(naive.NText, { depth: 3, style: { fontSize: '11px' } }, { default: () => row.email })])] }),
+            sorter: (a, b) => a.name.localeCompare(b.name)
+          },
+          { title: 'Role', key: 'role', width: 130, filter: true, filterOptions: roleOpts, render: row => h(naive.NTag, { size: 'small', type: { admin: 'error', manager: 'warning', engineer: 'info', data_scientist: 'success', viewer: 'default' }[row.role] || 'default', bordered: false }, { default: () => row.role.replace('_', ' ') }) },
+          { title: 'Organization', key: 'org', width: 140, ellipsis: { tooltip: true } },
+          { title: 'Team', key: 'team', width: 160, ellipsis: { tooltip: true } },
+          { title: 'Status', key: 'status', width: 100, render: row => h(naive.NTag, { size: 'small', type: row.status === 'Active' ? 'success' : row.status === 'Inactive' ? 'default' : 'error', bordered: false }, { default: () => row.status }) },
+          { title: 'Last Login', key: 'lastLogin', width: 110, sorter: true, render: row => fmtDate(row.lastLogin) },
+          { title: 'Actions', key: 'actions', width: 130, fixed: 'right', render: row => h(naive.NSpace, { size: 4 }, { default: () => [h(naive.NButton, { size: 'tiny', quaternary: true, type: 'primary', onClick: () => openEdit(row) }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.edit }) }), h(naive.NButton, { size: 'tiny', quaternary: true, type: row.status === 'Active' ? 'warning' : 'success', onClick: () => toggleStatus(row) }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => row.status === 'Active' ? IC.lock : IC.check }) }), h(naive.NPopconfirm, { onPositiveClick: () => msg.success('User removed (mock)') }, { trigger: () => h(naive.NButton, { size: 'tiny', quaternary: true, type: 'error' }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.trash }) }), default: () => 'Remove this user?' })] }) },
+        ];
+        return { users, showUserModal, formValue, roleOpts, orgOpts, teamOpts, columns, openCreate, saveUser, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-text strong style="font-size:16px;font-family:var(--font-display)">User Management</n-text>
+        <n-button type="primary" size="small" @click="openCreate"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>Add User</n-button>
+      </n-space>
+      <n-card size="small" :bordered="true">
+        <n-data-table :columns="columns" :data="users" :row-key="r=>r.id" :scroll-x="1000" size="small" :max-height="520" striped/>
+      </n-card>
+      <n-modal v-model:show="showUserModal" preset="dialog" :title="editingUser?'Edit User':'Add User'" style="width:520px" :show-icon="false">
+        <n-form label-placement="left" label-width="90" style="margin-top:16px">
+          <n-form-item label="Name"><n-input v-model:value="formValue.name" placeholder="Full name"/></n-form-item>
+          <n-form-item label="Email"><n-input v-model:value="formValue.email" placeholder="Email address"/></n-form-item>
+          <n-form-item label="Role"><n-select v-model:value="formValue.role" :options="roleOpts" placeholder="Select role"/></n-form-item>
+          <n-form-item label="Organization"><n-select v-model:value="formValue.org" :options="orgOpts" placeholder="Select org"/></n-form-item>
+          <n-form-item label="Team"><n-select v-model:value="formValue.team" :options="teamOpts" placeholder="Select team"/></n-form-item>
+          <n-form-item label="Status"><n-select v-model:value="formValue.status" :options="[{label:'Active',value:'Active'},{label:'Inactive',value:'Inactive'},{label:'Suspended',value:'Suspended'}]"/></n-form-item>
+        </n-form>
+        <template #action><n-button @click="showUserModal=false">Cancel</n-button><n-button type="primary" @click="saveUser">Save</n-button></template>
+      </n-modal>
+    </div>
+  `
+    });
+
+    /* ── Role Management View (Tree + Transfer) ── */
+    const RoleView = defineComponent({
+      setup() {
+        const msg = inject('message');
+        const selectedRole = ref(rolesData[0].key);
+        const roleDetail = computed(() => rolesData.find(r => r.key === selectedRole.value));
+        const permTree = reactive(permTreeData);
+        const checkedPerms = ref(['dataset.view', 'model.view', 'training.view', 'eval.view', 'deploy.view']);
+        const showCreateRole = ref(false);
+        const newRole = reactive({ name: '', desc: '' });
+        function updatePerms() { msg.success('Permissions updated for ' + roleDetail.value.label + ' (mock)'); }
+        function createRole() { showCreateRole.value = false; msg.success('Role created (mock)'); }
+        return { rolesData, selectedRole, roleDetail, permTree, checkedPerms, showCreateRole, newRole, updatePerms, createRole, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-text strong style="font-size:16px;font-family:var(--font-display)">Role Management</n-text>
+        <n-button type="primary" size="small" @click="showCreateRole=true"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>New Role</n-button>
+      </n-space>
+      <n-grid :x-gap="16" :cols="12" style="height:calc(100vh - 200px)">
+        <n-gi :span="4">
+          <n-card size="small" :bordered="true" title="Roles" style="height:100%">
+            <template #header-extra><n-badge :value="rolesData.length" type="info"/></template>
+            <n-scrollbar style="max-height:calc(100% - 50px)">
+              <div v-for="r in rolesData" :key="r.key" @click="selectedRole=r.key" :style="{padding:'12px',borderRadius:'8px',cursor:'pointer',marginBottom:'6px',background:selectedRole===r.key?'rgba(13,148,136,0.1)':'transparent',border:selectedRole===r.key?'1px solid rgba(13,148,136,0.3)':'1px solid transparent',transition:'all .15s'}">
+                <n-text strong style="font-size:13px;display:block">{{r.label}}</n-text>
+                <n-text depth="3" style="font-size:11px;display:block;margin-top:2px">{{r.desc}}</n-text>
+                <n-space size=12 style="margin-top:6px"><n-text depth="3" style="font-size:11px">{{r.users}} users</n-text><n-text depth="3" style="font-size:11px">{{r.perms}} perms</n-text></n-space>
+              </div>
+            </n-scrollbar>
+          </n-card>
+        </n-gi>
+        <n-gi :span="8">
+          <n-card size="small" :bordered="true" :title="roleDetail?.label+' — Permissions'" style="height:100%">
+            <template #header-extra><n-text depth="3" style="font-size:12px">{{checkedPerms.length}} permissions assigned</n-text></template>
+            <n-grid :cols="2" :x-gap="24" style="height:calc(100% - 50px)">
+              <n-gi>
+                <n-text strong style="font-size:13px;display:block;margin-bottom:8px">Permission Tree</n-text>
+                <n-scrollbar style="max-height:calc(100vh - 300px)">
+                  <n-tree :data="permTree" :checked-keys="checkedPerms" :on-update:checked-keys="k=>checkedPerms=k" checkable cascade check-on-click selectable block-line class="perm-tree"/>
+                </n-scrollbar>
+              </n-gi>
+              <n-gi>
+                <n-text strong style="font-size:13px;display:block;margin-bottom:8px">Assigned Permissions</n-text>
+                <n-scrollbar style="max-height:calc(100vh - 340px)">
+                  <n-space vertical size=4>
+                    <n-tag v-for="p in checkedPerms" :key="p" size="small" closable @close="checkedPerms=checkedPerms.filter(x=>x!==p)" type="info" :bordered="false">{{p}}</n-tag>
+                    <n-empty v-if="!checkedPerms.length" description="No permissions assigned" size="small"/>
+                  </n-space>
+                </n-scrollbar>
+                <n-divider/>
+                <n-button type="primary" block size="small" @click="updatePerms">Save Permissions</n-button>
+              </n-gi>
+            </n-grid>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      <n-modal v-model:show="showCreateRole" preset="dialog" title="Create Role" style="width:440px" :show-icon="false">
+        <n-form label-placement="left" label-width="70" style="margin-top:16px">
+          <n-form-item label="Name"><n-input v-model:value="newRole.name" placeholder="Role name"/></n-form-item>
+          <n-form-item label="Description"><n-input v-model:value="newRole.desc" type="textarea" :rows="2"/></n-form-item>
+        </n-form>
+        <template #action><n-button @click="showCreateRole=false">Cancel</n-button><n-button type="primary" @click="createRole">Create</n-button></template>
+      </n-modal>
+    </div>
+  `
+    });
+
+    /* ── Permission Management View ── */
+    const PermView = defineComponent({
+      setup() {
+        const msg = inject('message');
+        const selectedKeys = ref([]);
+        const treeData = reactive(permTreeData);
+        function onSelected(keys) { selectedKeys.value = keys; }
+        const selectedPerm = computed(() => { if (!selectedKeys.value.length) return null; const key = selectedKeys.value[0]; function find(nodes) { for (const n of nodes) { if (n.key === key) return n; if (n.children) { const f = find(n.children); if (f) return f; } } return null; } return find(treeData); });
+        return { treeData, selectedKeys, onSelected, selectedPerm, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-text strong style="font-size:16px;font-family:var(--font-display)">Permission Management</n-text>
+        <n-button type="primary" size="small"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>Add Permission</n-button>
+      </n-space>
+      <n-grid :x-gap="16" :cols="12" style="height:calc(100vh - 200px)">
+        <n-gi :span="5">
+          <n-card size="small" :bordered="true" title="Permission Hierarchy" style="height:100%">
+            <n-scrollbar style="max-height:calc(100vh - 260px)">
+              <n-tree :data="treeData" :selected-keys="selectedKeys" :on-update:selected-keys="onSelected" selectable block-line expand-on-click class="perm-tree" default-expand-all/>
+            </n-scrollbar>
+          </n-card>
+        </n-gi>
+        <n-gi :span="7">
+          <n-card size="small" :bordered="true" style="height:100%">
+            <template v-if="selectedPerm">
+              <n-page-header :title="selectedPerm.label" :subtitle="selectedPerm.key" style="margin-bottom:16px">
+                <template #extra><n-button size="small" type="primary"><n-icon style="margin-right:4px"><icon name="edit"/></n-icon>Edit</n-button></template>
+              </n-page-header>
+              <n-descriptions label-placement="left" :column="2" bordered size="small">
+                <n-descriptions-item label="Key" :span="2"><n-text code>{{selectedPerm.key}}</n-text></n-descriptions-item>
+                <n-descriptions-item label="Type">{{selectedPerm.children?'Category':'Permission'}}</n-descriptions-item>
+                <n-descriptions-item label="Children">{{selectedPerm.children?selectedPerm.children.length:0}}</n-descriptions-item>
+                <n-descriptions-item label="Roles with Access" :span="2">
+                  <n-space><n-tag size="small" type="error" :bordered="false">Super Admin</n-tag><n-tag size="small" type="warning" :bordered="false">Team Manager</n-tag></n-space>
+                </n-descriptions-item>
+              </n-descriptions>
+              <template v-if="selectedPerm.children">
+                <n-divider>Child Permissions</n-divider>
+                <n-list bordered size="small">
+                  <n-list-item v-for="c in selectedPerm.children" :key="c.key">
+                    <n-thing :title="c.label" :description="c.key">
+                      <template #header-extra><n-switch size="small" :default-checked="true"/></template>
+                    </n-thing>
+                  </n-list-item>
+                </n-list>
+              </template>
+            </template>
+            <n-empty v-else description="Select a permission to view details" style="margin-top:60px"/>
+          </n-card>
+        </n-gi>
+      </n-grid>
+    </div>
+  `
+    });
+
+    /* ── Logging & Audit View ── */
+    const LogView = defineComponent({
+      setup() {
+        const logs = genLogs(3000);
+        const searchVal = ref(''); const levelFilter = ref(null); const actionFilter = ref(null);
+        const page = ref(1); const pageSize = ref(50);
+        const filtered = computed(() => { let d = logs; if (searchVal.value) d = d.filter(x => x.detail.toLowerCase().includes(searchVal.value.toLowerCase()) || x.user.includes(searchVal.value)); if (levelFilter.value) d = d.filter(x => x.level === levelFilter.value); if (actionFilter.value) d = d.filter(x => x.action === actionFilter.value); return d; });
+        const paged = computed(() => filtered.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value));
+        const levelOpts = ['INFO', 'WARN', 'ERROR', 'DEBUG'].map(l => ({ label: l, value: l })); const actOpts = LOG_ACTIONS.slice(0, 12).map(a => ({ label: a, value: a }));
+        function lvlColor(l) { return { INFO: 'info', WARN: 'warning', ERROR: 'error', DEBUG: 'default' }[l] || 'default'; }
+        const columns = [
+          { title: 'Time', key: 'timestamp', width: 160, sorter: true, render: row => h(naive.NText, { code: true, style: { fontSize: '12px' } }, { default: () => fmtDateTime(row.timestamp) }) },
+          { title: 'Level', key: 'level', width: 80, filter: true, filterOptions: levelOpts, render: row => h(naive.NTag, { size: 'small', type: lvlColor(row.level), bordered: false }, { default: () => row.level }) },
+          { title: 'Action', key: 'action', width: 140, filter: true, filterOptions: actOpts, render: row => h(naive.NText, { code: true, style: { fontSize: '12px' } }, { default: () => row.action }) },
+          { title: 'User', key: 'user', width: 130 },
+          { title: 'Detail', key: 'detail', ellipsis: { tooltip: true }, render: row => h(naive.NText, { style: { fontSize: '12px' } }, { default: () => row.detail }) },
+          { title: 'IP', key: 'ip', width: 120, render: row => h(naive.NText, { code: true, style: { fontSize: '11px' } }, { default: () => row.ip }) },
+          { title: 'Status', key: 'status', width: 80, render: row => h(naive.NTag, { size: 'tiny', type: row.status === 'success' ? 'success' : 'error', bordered: false }, { default: () => row.status }) },
+        ];
+        return { logs, searchVal, levelFilter, actionFilter, page, pageSize, filtered, paged, columns, levelOpts, actOpts, lvlColor, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-space align="center"><n-text strong style="font-size:16px;font-family:var(--font-display)">Logging & Audit</n-text><n-badge :value="filtered.length" type="info" :max="9999"/></n-space>
+        <n-space>
+          <n-input v-model:value="searchVal" placeholder="Search logs..." clearable size="small" style="width:220px"/>
+          <n-select v-model:value="levelFilter" placeholder="Level" clearable size="small" :options="levelOpts" style="width:110px"/>
+          <n-select v-model:value="actionFilter" placeholder="Action" clearable size="small" :options="actOpts" style="width:170px"/>
+          <n-button size="small"><n-icon style="margin-right:4px"><icon name="download"/></n-icon>Export</n-button>
+        </n-space>
+      </n-space>
+      <n-card size="small" :bordered="true">
+        <n-data-table :columns="columns" :data="paged" :row-key="r=>r.id" :pagination="{page,pageSize,pageCount:Math.ceil(filtered.length/pageSize),showSizePicker:true,pageSizes:[20,50,100,200],onChange:p=>page=p,onUpdatePageSize:s=>{pageSize=s;page=1},prefix:({itemCount})=>\`\${itemCount.toLocaleString()} entries\`}" :scroll-x="1000" size="small" :max-height="560" virtual-scroll striped/>
+      </n-card>
+    </div>
+  `
+    });
+
+    /* ── Reporting View ── */
+    const ReportView = defineComponent({
+      setup() {
+        const reports = genReports();
+        const chartBars = Array.from({ length: 12 }, () => rand(20, 90));
+        const lineData = [30, 45, 38, 55, 62, 58, 70, 75, 68, 82, 78, 88];
+        const msg = inject('message');
+        const columns = [
+          { title: 'Report', key: 'name', render: row => h('span', { style: { fontWeight: '600', fontSize: '13px' } }, row.name), sorter: (a, b) => a.name.localeCompare(b.name) },
+          { title: 'Type', key: 'type', width: 120, render: row => h(naive.NTag, { size: 'small', bordered: false, type: { Quarterly: 'success', Monthly: 'info', Audit: 'warning', Analysis: 'info', Monitoring: 'error', Annual: 'success' }[row.type] || 'default' }, { default: () => row.type }) },
+          { title: 'Status', key: 'status', width: 100, render: row => h(naive.NTag, { size: 'small', type: { Published: 'success', Draft: 'warning', Processing: 'info' }[row.status] || 'default', bordered: false }, { default: () => row.status }) },
+          { title: 'Pages', key: 'pages', width: 70, sorter: true },
+          { title: 'Downloads', key: 'downloads', width: 100, sorter: true, render: row => h('span', { style: { fontFamily: 'var(--font-display)', fontWeight: '500' } }, row.downloads.toLocaleString()) },
+          { title: 'Created', key: 'created', width: 110, sorter: true, render: row => fmtDate(row.created) },
+          { title: 'Actions', key: 'actions', width: 140, render: row => h(naive.NSpace, { size: 4 }, { default: () => [h(naive.NButton, { size: 'tiny', quaternary: true, type: 'primary', onClick: () => msg.info('Viewing report (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.eye }) }), h(naive.NButton, { size: 'tiny', quaternary: true, type: 'info', onClick: () => msg.info('Downloading PDF (mock)') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.download }) }), h(naive.NButton, { size: 'tiny', quaternary: true, onClick: () => msg.info('Link copied') }, { icon: () => h(naive.NIcon, { size: 14 }, { default: () => IC.copy }) })] }) },
+        ];
+        return { reports, columns, chartBars, lineData, IC };
+      },
+      template: `
+    <div class="fade-in">
+      <n-space justify="space-between" align="center" style="margin-bottom:12px">
+        <n-text strong style="font-size:16px;font-family:var(--font-display)">Reporting</n-text>
+        <n-space>
+          <n-date-picker type="daterange" size="small" clearable/>
+          <n-button type="primary" size="small"><n-icon style="margin-right:4px"><icon name="plus"/></n-icon>Generate Report</n-button>
+        </n-space>
+      </n-space>
+      <n-grid :x-gap="16" :y-gap="16" :cols="12" style="margin-bottom:16px">
+        <n-gi :span="12 l:8">
+          <n-card size="small" :bordered="true" title="Model Performance Trend">
+            <div style="display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px">
+              <div v-for="(v,i) in lineData" :key="i" :style="{flex:1,background:'linear-gradient(to top, rgba(13,148,136,0.8), rgba(13,148,136,0.2))',height:v*1.6+'px',borderRadius:'4px 4px 0 0',transition:'height .5s',position:'relative'}">
+                <div :style="{position:'absolute',top:'-18px',left:'50%',transform:'translateX(-50%)',fontSize:'10px',fontWeight:'600',color:'#0D9488'}">{{v}}</div>
+              </div>
+            </div>
+            <n-space justify="space-between" style="margin-top:8px"><n-text v-for="m in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']" :key="m" depth="3" style="font-size:10px;flex:1;text-align:center">{{m}}</n-text></n-space>
+          </n-card>
+        </n-gi>
+        <n-gi :span="12 l:4">
+          <n-card size="small" :bordered="true" title="Report Stats">
+            <n-space vertical size="16">
+              <div style="display:flex;justify-content:space-between;align-items:center"><n-text depth="2">Total Reports</n-text><n-text strong style="font-family:var(--font-display);font-size:20px">{{reports.length}}</n-text></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><n-text depth="2">Published</n-text><n-text strong style="font-family:var(--font-display);font-size:20px;color:#0D9488">{{reports.filter(r=>r.status==='Published').length}}</n-text></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><n-text depth="2">Total Downloads</n-text><n-text strong style="font-family:var(--font-display);font-size:20px">{{reports.reduce((a,r)=>a+r.downloads,0).toLocaleString()}}</n-text></div>
+              <div style="display:flex;justify-content:space-between;align-items:center"><n-text depth="2">Total Pages</n-text><n-text strong style="font-family:var(--font-display);font-size:20px">{{reports.reduce((a,r)=>a+r.pages,0)}}</n-text></div>
+            </n-space>
+          </n-card>
+        </n-gi>
+      </n-grid>
+      <n-card size="small" :bordered="true" title="All Reports">
+        <n-data-table :columns="columns" :data="reports" :row-key="r=>r.id" :scroll-x="900" size="small" :max-height="300" striped/>
+      </n-card>
+    </div>
+  `
+    });
+
+    /* ── Sidebar Menu ── */
+    const menuOptions = [
+      { label: 'Dashboard', key: 'dashboard', icon: () => IC.dashboard },
+      {
+        label: 'Data', key: 'data', icon: () => IC.folder, children: [
+          { label: 'Dataset Management', key: 'datasets', icon: () => IC.dataset },
+          { label: 'Data Labeling', key: 'labeling', icon: () => IC.label },
+        ]
+      },
+      {
+        label: 'Model', key: 'model', icon: () => IC.model, children: [
+          { label: 'Model Management', key: 'models', icon: () => IC.model },
+          { label: 'Training Management', key: 'training', icon: () => IC.train },
+          { label: 'Evaluation Management', key: 'evaluation', icon: () => IC.eval },
+        ]
+      },
+      {
+        label: 'Deployment', key: 'deployment', icon: () => IC.deploy, children: [
+          { label: 'Deployment Management', key: 'deploys', icon: () => IC.deploy },
+        ]
+      },
+      {
+        label: 'Analytics', key: 'analytics', icon: () => IC.report, children: [
+          { label: 'Reporting', key: 'reports', icon: () => IC.report },
+        ]
+      },
+      {
+        label: 'System', key: 'system', icon: () => IC.settings, children: [
+          { label: 'User Management', key: 'users', icon: () => IC.users },
+          { label: 'Role Management', key: 'roles', icon: () => IC.role },
+          { label: 'Permission Management', key: 'permissions', icon: () => IC.perm },
+          { label: 'Logging & Audit', key: 'logs', icon: () => IC.log },
+        ]
+      },
+    ];
+
+    /* ── Main App ── */
+    const MainApp = defineComponent({
+      setup() {
+        provide('message', message); provide('dialog', dialog); provide('notification', notification);
+
+        const darkMode = ref(true);
+        const collapsed = ref(false);
+        const activeMenu = ref('dashboard');
+        const openTabs = reactive([{ key: 'dashboard', label: 'Dashboard', closable: false }]);
+        const activeTab = ref('dashboard');
+        const showDrawer = ref(false);
+        const searchVal = ref('');
+        const envVal = ref('Production');
+        const notifCount = ref(5);
+        const showNotif = ref(false);
+        const showProfile = ref(false);
+        const showEnvSelect = ref(false);
+
+        const envOpts = ['Production', 'Staging', 'Development', 'Canary'].map(e => ({ label: e, value: e }));
+        const notifOpts = [
+          { label: 'GPT-7B deployment succeeded', key: 'n1', type: 'success', time: '2 min ago' },
+          { label: 'Training Run #72 completed', key: 'n2', type: 'info', time: '8 min ago' },
+          { label: 'Deployment staging-yolo-42 failed', key: 'n3', type: 'error', time: '22 min ago' },
+          { label: 'Evaluation #148: F1 score 94.2%', key: 'n4', type: 'success', time: '35 min ago' },
+          { label: 'Dataset COCO v3.0 ready', key: 'n5', type: 'info', time: '1 hr ago' },
+        ];
+        const profileOpts = [
+          { label: 'Profile', key: 'profile', icon: () => IC.users },
+          { label: 'Settings', key: 'settings', icon: () => IC.settings },
+          { label: 'Organization', key: 'org', icon: () => IC.globe },
+          { type: 'divider', key: 'd1' },
+          { label: 'Logout', key: 'logout', icon: () => IC.logout },
+        ];
+
+        const currentOverrides = computed(() => darkMode.value ? darkThemeOverrides : themeOverrides);
+
+        const breadcrumb = computed(() => {
+          const map = { dashboard: ['Dashboard'], datasets: ['Data', 'Dataset Management'], labeling: ['Data', 'Data Labeling'], models: ['Model', 'Model Management'], training: ['Model', 'Training Management'], evaluation: ['Model', 'Evaluation Management'], deploys: ['Deployment', 'Deployment Management'], reports: ['Analytics', 'Reporting'], users: ['System', 'User Management'], roles: ['System', 'Role Management'], permissions: ['System', 'Permission Management'], logs: ['System', 'Logging & Audit'] };
+          return map[activeTab.value] || ['Dashboard'];
+        });
+
+        function handleMenuUpdate(key) {
+          activeMenu.value = key;
+          if (!openTabs.find(t => t.key === key)) { openTabs.push({ key, label: flattenMenu(menuOptions).find(m => m.key === key)?.label || key, closable: true }); }
+          activeTab.value = key;
+        }
+        function flattenMenu(items) { let r = []; for (const item of items) { r.push(item); if (item.children) r = r.concat(flattenMenu(item.children)); } return r; }
+        function closeTab(key) { const idx = openTabs.findIndex(t => t.key === key); if (idx > -1) { openTabs.splice(idx, 1); if (activeTab.value === key) { activeTab.value = openTabs[Math.max(0, idx - 1)]?.key || 'dashboard'; activeMenu.value = activeTab.value; } } }
+        function handleProfileClick(key) { if (key === 'logout') { dialog.warning({ title: 'Logout', content: 'Are you sure you want to logout?', positiveText: 'Logout', negativeText: 'Cancel', onPositiveClick: () => message.success('Logged out (mock)') }); } else { message.info(key + ' clicked (mock)'); showProfile.value = false; } }
+
+        function notifyDemo() { notification.info({ title: 'Platform Notification', content: 'New model evaluation results are available for review.', duration: 4000 }); }
+
+        const searchPrefix = () => IC.search;
+        const collapsedIcon = () => null;
+        onMounted(() => { setTimeout(notifyDemo, 2000); });
+
+        return { darkMode, collapsed, activeMenu, openTabs, activeTab, showDrawer, searchVal, envVal, notifCount, showNotif, showProfile, showEnvSelect, envOpts, notifOpts, profileOpts, currentOverrides, breadcrumb, handleMenuUpdate, closeTab, handleProfileClick, menuOptions, IC, message, darkTheme, themeOverrides: currentOverrides, searchPrefix, collapsedIcon };
+      },
+      template: `
+    <n-config-provider :theme="darkMode?darkTheme:null" :theme-overrides="themeOverrides">
+      <n-layout has-sider style="height:100vh">
+      <n-layout-sider bordered :collapsed="collapsed" :collapsed-width="64" :width="240" :show-trigger="false" :native-scrollbar="false" class="sidebar-collapsed" :style="{transition:'width .3s cubic-bezier(.4,0,.2,1)'}">
+        <div class="sidebar-logo">
+          <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h9l-1 10 10-12h-9l1-10z"/></svg></div>
+          <span class="logo-text">NexusAI</span>
+        </div>
+        <n-menu :options="menuOptions" :value="activeMenu" :collapsed="collapsed" :collapsed-width="64" :collapsed-icon="collapsedIcon" :root-indent="16" :indent="12" @update:value="handleMenuUpdate" :inverted="true" style="--n-item-text-color-active:#14B8A6"/>
+      </n-layout-sider>
+      <n-layout>
+        <n-layout-header bordered style="height:var(--header-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)">
+          <n-space align="center" :size="12">
+            <n-button quaternary :style="{fontSize:'18px'}" @click="collapsed=!collapsed"><n-icon :size="20"><icon name="menu"/></n-icon></n-button>
+            <n-breadcrumb style="font-size:13px">
+              <n-breadcrumb-item v-for="(b,i) in breadcrumb" :key="i">{{b}}</n-breadcrumb-item>
+            </n-breadcrumb>
+          </n-space>
+          <n-space align="center" :size="8">
+            <n-auto-complete v-model:value="searchVal" :options="[]" placeholder="Search anything..." clearable size="small" style="width:220px" :input-props="{prefix:searchPrefix}"/>
+            <n-popover trigger="click" placement="bottom-end" :show="showEnvSelect" @update:show="v=>showEnvSelect=v">
+              <template #trigger>
+                <n-button size="small" quaternary @click="showEnvSelect=!showEnvSelect">
+                  <span class="header-env-tag" :style="{background:envVal==='Production'?'rgba(13,148,136,0.15)':envVal==='Staging'?'rgba(245,158,11,0.15)':envVal==='Development'?'rgba(139,92,246,0.15)':'rgba(6,182,212,0.15)',color:envVal==='Production'?'#0D9488':envVal==='Staging'?'#f59e0b':envVal==='Development'?'#8b5cf6':'#06b6d4'}">{{envVal}}</span>
+                </n-button>
+              </template>
+              <n-radio-group v-model:value="envVal" size="small">
+                <n-space vertical><n-radio v-for="e in envOpts" :key="e.value" :value="e.value">{{e.label}}</n-radio></n-space>
+              </n-radio-group>
+            </n-popover>
+            <n-badge :value="notifCount" :max="9">
+              <n-button quaternary size="small" @click="showNotif=!showNotif"><n-icon :size="18"><icon name="bell"/></n-icon></n-button>
+            </n-badge>
+            <n-dropdown :options="profileOpts" @select="handleProfileClick" trigger="click" :show-arrow="true" placement="bottom-end">
+              <n-button quaternary size="small" style="padding:0 4px">
+                <n-space align="center" :size="8"><n-avatar :size="28" round style="background:rgba(13,148,136,0.15);color:#0D9488;font-weight:600;font-size:12px">SC</n-avatar><n-text style="font-size:13px;font-weight:500">Sarah Chen</n-text></n-space>
+              </n-button>
+            </n-dropdown>
+            <n-button quaternary size="small" @click="darkMode=!darkMode"><n-icon :size="18"><icon :name="darkMode?'sun':'moon'"/></n-icon></n-button>
+          </n-space>
+        </n-layout-header>
+        <n-layout-content :native-scrollbar="false" style="padding:12px 16px">
+          <n-tabs v-model:value="activeTab" type="line" animated class="workspace-tabs" style="margin-bottom:12px">
+            <n-tab-pane v-for="tab in openTabs" :key="tab.key" :name="tab.key" :tab="tab.label">
+              <template #tab>
+                <n-space align="center" :size="4">
+                  <span>{{tab.label}}</span>
+                  <n-icon v-if="tab.closable" :size="14" style="cursor:pointer" @click.stop="closeTab(tab.key)"><icon name="close"/></n-icon>
+                </n-space>
+              </template>
+            </n-tab-pane>
+          </n-tabs>
+          <dashboard-view v-if="activeTab==='dashboard'"/>
+          <dataset-view v-else-if="activeTab==='datasets'"/>
+          <model-view v-else-if="activeTab==='models'"/>
+          <training-view v-else-if="activeTab==='training'"/>
+          <eval-view v-else-if="activeTab==='evaluation'"/>
+          <deploy-view v-else-if="activeTab==='deploys'"/>
+          <labeling-view v-else-if="activeTab==='labeling'"/>
+          <report-view v-else-if="activeTab==='reports'"/>
+          <user-view v-else-if="activeTab==='users'"/>
+          <role-view v-else-if="activeTab==='roles'"/>
+          <perm-view v-else-if="activeTab==='permissions'"/>
+          <log-view v-else-if="activeTab==='logs'"/>
+        </n-layout-content>
+      </n-layout>
+    </n-layout>
+    </n-config-provider>
+  `
+    });
+
+    /* ── Bootstrap ── */
+    const app = createApp(MainApp);
+    app.use(naive);
+    app.component('icon', Icon);
+    app.component('bar-chart', BarChart);
+    app.component('sparkline', Sparkline);
+    app.component('donut-chart', DonutChart);
+    app.component('dashboard-view', DashboardView);
+    app.component('dataset-view', DatasetView);
+    app.component('model-view', ModelView);
+    app.component('training-view', TrainingView);
+    app.component('eval-view', EvalView);
+    app.component('deploy-view', DeployView);
+    app.component('labeling-view', LabelingView);
+    app.component('report-view', ReportView);
+    app.component('user-view', UserView);
+    app.component('role-view', RoleView);
+    app.component('perm-view', PermView);
+    app.component('log-view', LogView);
+    app.mount('#app');
+  </script>
+</body>
+
+</html>
