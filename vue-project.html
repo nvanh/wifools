@@ -830,7 +830,7 @@
         <n-data-table :columns="columns" :data="pagedData" :row-key="r=>r.id" :pagination="{page:page,pageSize:pageSize,pageCount:Math.ceil(totalFiltered/pageSize),showSizePicker:true,pageSizes:[10,20,50,100],prefix:({itemCount})=>\`Total \${itemCount} items\`,onChange:(p)=>page=p,onUpdatePageSize:(s)=>{pageSize=s;page=1}}" :checked-row-keys="checkedKeys" @update:checked-row-keys="k=>checkedKeys=k" :scroll-x="1600" size="small" :max-height="520" virtual-scroll striped :sorter="true" @update:sorter="handleSorterChange" :row-props="r=>({style:'cursor:pointer'})" :loading="false"/>
       </n-card>
       <n-modal v-model:show="showModal" preset="dialog" :title="formValue.name&&datasets.find(d=>d.name===formValue.name)?'Edit Dataset':'Create Dataset'" style="width:560px" :show-icon="false">
-        <n-form :model="formValue" :rules="formRules" label-placement="left" label-width="80" style="margin-top:16px">
+        <n-form :model="formValue" :rules="formRules" label-placement="left" label-width="100" style="margin-top:16px">
           <n-form-item label="Name" path="name"><n-input v-model:value="formValue.name" placeholder="Enter dataset name"/></n-form-item>
           <n-form-item label="Type" path="type"><n-select v-model:value="formValue.type" :options="typeOptions" placeholder="Select type"/></n-form-item>
           <n-form-item label="Format"><n-select v-model:value="formValue.format" :options="$options.formatOptions" placeholder="Select format" clearable/></n-form-item>
