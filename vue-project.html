@@ -1737,7 +1737,7 @@
         </n-space>
       </n-space>
       <n-grid :x-gap="16" :y-gap="16" :cols="12" style="margin-bottom:16px">
-        <n-gi :span="12 l:8">
+        <n-gi span="12 l:8">
           <n-card size="small" :bordered="true" title="Model Performance Trend">
             <div style="display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px">
               <div v-for="(v,i) in lineData" :key="i" :style="{flex:1,background:'linear-gradient(to top, rgba(13,148,136,0.8), rgba(13,148,136,0.2))',height:v*1.6+'px',borderRadius:'4px 4px 0 0',transition:'height .5s',position:'relative'}">
@@ -1747,7 +1747,7 @@
             <n-space justify="space-between" style="margin-top:8px"><n-text v-for="m in ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']" :key="m" depth="3" style="font-size:10px;flex:1;text-align:center">{{m}}</n-text></n-space>
           </n-card>
         </n-gi>
-        <n-gi :span="12 l:4">
+        <n-gi span="12 l:4">
           <n-card size="small" :bordered="true" title="Report Stats">
             <n-space vertical size="16">
               <div style="display:flex;justify-content:space-between;align-items:center"><n-text depth="2">Total Reports</n-text><n-text strong style="font-family:var(--font-display);font-size:20px">{{reports.length}}</n-text></div>
