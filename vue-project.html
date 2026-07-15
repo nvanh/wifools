@@ -76,6 +76,10 @@
       width: 0
     }
 
+    .sidebar-collapsed .n-menu {
+      font-size: 20px !important
+    }
+
     .main-layout {
       height: calc(100vh - var(--header-h))
     }
@@ -1862,7 +1866,7 @@
       template: `
     <n-config-provider :theme="darkMode?darkTheme:null" :theme-overrides="themeOverrides">
       <n-layout has-sider style="height:100vh">
-      <n-layout-sider bordered :collapsed="collapsed" :collapsed-width="64" :width="240" :show-trigger="false" :native-scrollbar="false" class="sidebar-collapsed" :style="{transition:'width .3s cubic-bezier(.4,0,.2,1)'}">
+      <n-layout-sider bordered :collapsed="collapsed" :collapsed-width="64" :width="240" :show-trigger="false" :native-scrollbar="false" :class="{ 'sidebar-collapsed': collapsed }" :style="{transition:'width .3s cubic-bezier(.4,0,.2,1)'}">
         <div class="sidebar-logo">
           <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 2L3 14h9l-1 10 10-12h-9l1-10z"/></svg></div>
           <span class="logo-text">NexusAI</span>
