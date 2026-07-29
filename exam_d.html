@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOPIK Luyện Tập Trắc Nghiệm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3347;
+            --text: #d4d8f0;
+            --text-muted: #7a82a8;
+            --text-dim: #4a5175;
+            --accent: #5b7cf6;
+            --accent-soft: rgba(91, 124, 246, 0.15);
+            --green: #22c55e;
+            --green-soft: rgba(34, 197, 94, 0.18);
+            --green-border: rgba(34, 197, 94, 0.4);
+            --yellow: #fbbf24;
+            --red: #f87171;
+            --option-hover: #252a40;
+            --option-selected: #1e2d4a;
+            --option-correct: #0f2d1a;
+            --option-border-correct: #22c55e;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        #header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+        }
+
+        #header-inner {
+            max-width: 1920px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 220px 1fr 340px;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* left stats */
+        #stats {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .stat-val {
+            font-family: 'Inter', monospace;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .stat-correct {
+            color: var(--green);
+        }
+
+        .stat-wrong {
+            color: var(--red);
+        }
+
+        /* center timer */
+        #timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #timer {
+            font-family: 'Inter', monospace;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        #timer.warning {
+            color: var(--yellow);
+        }
+
+        #timer-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* right nav buttons */
+        #nav-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        .nav-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        /* ── MAIN ── */
+        #main {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+        }
+
+        /* ── QUESTION CARD ── */
+        .q-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 26px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .q-card:hover {
+            border-color: #3a3f5a;
+        }
+
+        /* question header */
+        .q-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .q-num {
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .q-num.answered {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .q-num.correct {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .q-title-block {
+            flex: 1;
+        }
+
+        .q-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        /* toggle translation link */
+        .toggle-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-dim);
+            cursor: pointer;
+            margin-top: 4px;
+            text-decoration: none;
+            user-select: none;
+            transition: color 0.15s;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .toggle-link:hover {
+            color: var(--accent);
+        }
+
+        .toggle-link svg {
+            width: 12px;
+            height: 12px;
+            transition: transform 0.2s;
+        }
+
+        .toggle-link.open svg {
+            transform: rotate(180deg);
+        }
+
+        /* translation box */
+        .translation {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--border);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+
+        .translation.visible {
+            display: block;
+        }
+
+        /* question image */
+        .q-image {
+            display: block;
+            width: 600px;
+            max-width: 100%;
+            margin: 14px auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        /* audio player */
+        .q-audio {
+            margin: 10px 0;
+        }
+
+        .q-audio audio {
+            width: 100%;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            outline: none;
+        }
+
+        /* ── OPTIONS ── */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            width: 100%;
+            color: var(--text);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: var(--option-hover);
+        }
+
+        .option.selected {
+            border-color: var(--accent);
+            background: var(--option-selected);
+        }
+
+        .option.correct-ans {
+            border-color: var(--option-border-correct) !important;
+            background: var(--option-correct) !important;
+        }
+
+        .opt-label {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 1px;
+            transition: all 0.15s;
+        }
+
+        .option.selected .opt-label {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .option.correct-ans .opt-label {
+            color: var(--green) !important;
+            border-color: var(--green) !important;
+            background: var(--green-soft);
+        }
+
+        .opt-body {
+            flex: 1;
+        }
+
+        .opt-text {
+            display: block;
+        }
+
+        .opt-img {
+            max-width: 240px;
+            max-height: 160px;
+            border-radius: 4px;
+            margin-top: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* options translation row */
+        .options-trans-wrap {
+            margin-top: 6px;
+        }
+
+        .opt-trans-text {
+            display: none;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+            margin-top: 3px;
+        }
+
+        .opt-trans-text.visible {
+            display: block;
+        }
+
+        /* ── KEY BUTTON ── */
+        .key-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .btn-key {
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.15s;
+        }
+
+        .btn-key:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .btn-key.active {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .score-badge {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .score-badge span {
+            color: var(--yellow);
+            font-weight: 600;
+        }
+
+        /* ── EXPLAIN BOX ── */
+        .explain-box {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        .explain-box.visible {
+            display: block;
+        }
+
+        .explain-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .explain-ko {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13.5px;
+            color: var(--text);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .explain-vn {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(34, 197, 94, 0.15);
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+
+        .explain-vn.visible {
+            display: block;
+        }
+
+        /* bold answer mark inside explain */
+        .ans-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--green);
+            color: #0a1a0e;
+            font-size: 11px;
+            font-weight: 800;
+            margin: 0 2px;
+            vertical-align: middle;
+        }
+
+        /* ── PROGRESS BAR ── */
+        #progress-bar-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--surface2);
+            z-index: 200;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5175;
+        }
+
+        /* anchor for jump nav */
+        .q-anchor {
+            scroll-margin-top: 80px;
+        }
+
+        /* score pill */
+        .no-answer-note {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div id="header">
+        <div id="header-inner">
+            <!-- Left: Stats -->
+            <div id="stats">
+                <div class="stat-row">
+                    Đã trả lời: <span class="stat-val" id="stat-answered">0</span>
+                    <span style="color:var(--text-dim)">/ <span id="stat-total">0</span></span>
+                </div>
+                <div class="stat-row">
+                    Đúng: <span class="stat-val stat-correct" id="stat-correct">0</span>
+                    &nbsp;·&nbsp;
+                    Sai: <span class="stat-val stat-wrong" id="stat-wrong">0</span>
+                    &nbsp;·&nbsp;
+                    <span id="stat-pct" style="color:var(--text-muted);font-size:12px">0%</span>
+                </div>
+            </div>
+
+            <!-- Center: Timer -->
+            <div id="timer-wrap">
+                <div id="timer">00:00:00</div>
+                <div id="timer-label">Thời gian</div>
+            </div>
+
+            <!-- Right: Jump buttons -->
+            <div id="nav-btns">
+                <!-- generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+        <div id="questions-container"></div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div id="progress-bar-wrap">
+        <div id="progress-bar"></div>
+    </div>
+
+    <script>
+        // ─────────────────────────────────────────
+        // DATA
+        // ─────────────────────────────────────────
+        const QUESTIONS = [
+            {
+                "title": "Câu 1: 다음을 듣고 가장 알맞은 그림 또는 그래프를 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664193_11f404b9cd9412ca4b85.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=4ea0dc510493c299eac995f07b86fb489f5846904f07f90f2a10ee56e1ef5877", "valueVN": "" },
+                    { "id": 2, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664193_70972e45e0683f366679.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=a2d78af3e20e593a61c64f8279d3edc42359d9fd19d22a1e77ed3a418a4b8992", "valueVN": "" },
+                    { "id": 3, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664193_450494535a7e8520dc6f.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=73cb48837a37b9d5bd8ff5cf05b2869a71f2c80cab4f81ff5c3965696251dc9e", "valueVN": "" },
+                    { "id": 4, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664194_d3a65c5e93734c2d1562.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=85999d6140111c816de22aa2d170315fda347dea726aaf14d9e1a97d8d860ff1", "valueVN": "" }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664194_2.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=bde2a4009fb7ee9e9a3c027bd838f750ace348b3d9fd71596dc3adae87ffcfbb",
+                "explain": "남자: 이 반지 어때요? 수미 씨한테 잘 어울릴 것 같은데요.\n여자: 그건 너무 비싸요. 다른 걸로 하는 게 좋겠어요.\n남자: 괜찮아요. 한번 껴 보고 마음에 들면 이 반지로 해요.",
+                "titleVN": "Câu 1: Nghe đoạn hội thoại sau và chọn hình ảnh hoặc biểu đồ phù hợp nhất.",
+                "explainVN": "Nam: Chiếc nhẫn này thế nào? Tôi thấy nó có vẻ rất hợp với cô Sumi đấy.\nNữ: Cái đó đắt quá. Chọn cái khác thì tốt hơn.\nNam: Không sao đâu. Cô cứ đeo thử một lần xem, nếu thấy ưng ý thì lấy chiếc này."
+            },
+            {
+                "title": "Câu 2: 다음을 듣고 가장 알맞은 그림 또는 그래프를 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664532_c7c2f962264ff911a05e.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=6898deb9847730d43e2b86e2937bde274f3f4c1f7264815425fc28625136da7a", "valueVN": "" },
+                    { "id": 2, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664532_4e702d24f2092d577418.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=5d79d9c013c89c384cbf0fd603282a3dcc884758ee9b4295ebc7ffa68515cbce", "valueVN": "" },
+                    { "id": 3, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664532_580350cf8ce253bc0af3.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=37cf4826090eb5b70341cdc6e2b14b02491d20438e43747277af66171f9bd07e", "valueVN": "" },
+                    { "id": 4, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664532_e38ab5b1699cb6c2ef8d.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=89b55ff1ef173c61e0d3c84e8e1815f7a7228d6bc838c5feb771f1c467e56db3", "valueVN": "" }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664532_3_%2B%C3%B7-%C3%B1_20210121.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=12f73dcecd8b223fe8ff84c7be3149330ef196b4e2a7ff662cac2620234897c5",
+                "explain": "여자: 이렇게 올라오니까 경치가 정말 멋지네요.\n남자: 올라올 땐 힘들어도 역시 산에 오길 잘했지요?\n여자: 네, 등산을 하니까 스트레스도 풀리는 것 같아요.",
+                "titleVN": "Câu 2: Nghe đoạn hội thoại sau và chọn hình ảnh hoặc biểu đồ phù hợp nhất.",
+                "explainVN": "Nữ: Leo lên đến đây thấy cảnh sắc thật tuyệt vời.\nNam: Lúc leo lên tuy mệt nhưng đúng là đến núi là quyết định đúng đắn phải không?\nNữ: Vâng, leo núi làm tôi cảm thấy như được giải tỏa căng thẳng vậy."
+            },
+            {
+                "title": "Câu 3: 다음을 듣고 가장 알맞은 그림 또는 그래프를 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664699_16fce13d3010ef4eb601.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=ab30086330f06243ed18ee08ec838446fa369c11950f3497ace2593261a32942", "valueVN": "" },
+                    { "id": 2, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664699_803ed69a00b7dfe986a6.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=26f91963ebdb88d06a02c3b448810eb1c2a44b57c29546a6848234fb4f067c34", "valueVN": "" },
+                    { "id": 3, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664699_d579b053667eb920e06f.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=3717b9f6391b496b93b29742507d53ab5b805b2ef8ac54d9e0a89c7349a9279a", "valueVN": "" },
+                    { "id": 4, "value": "", "url": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664699_253645b0929d4dc3148c.jpg?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=4297be3b4eb1627a69839b98d1cad2ba83640204ce55f95052d483839efae649", "valueVN": "" }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664699_4.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=e32f8e248c77e67ca88b5f75d0d3720f61828e32676d509ac1ae0a823065efb8",
+                "explain": "여자: 20대 1인 가구가 가장 많이 편의점을 방문한다는 조사 결과가 나왔습니다.",
+                "titleVN": "Câu 3: Nghe đoạn hội thoại sau và chọn hình ảnh hoặc biểu đồ phù hợp nhất.",
+                "explainVN": "Nữ: Kết quả khảo sát cho thấy hộ gia đình 1 người ở độ tuổi 20 ghé thăm cửa hàng tiện lợi nhiều nhất."
+            },
+            {
+                "title": "Câu 4: 다음 대화를 잘 듣고 이어질 수 있는 말로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "걱정해 주셔서 감사합니다.", "url": "", "valueVN": "Cảm ơn vì đã lo lắng cho tôi." },
+                    { "id": 2, "value": "조금 쉬었더니 이제 나아졌어요.", "url": "", "valueVN": "Nghỉ ngơi một chút nên giờ tôi đã thấy khỏe hơn rồi." },
+                    { "id": 3, "value": "너무 무리하면 건강에 안 좋아요.", "url": "", "valueVN": "Làm việc quá sức sẽ không tốt cho sức khỏe đâu." },
+                    { "id": 4, "value": "쉬려고 했는데 일이 많아서 힘들어요.", "url": "", "valueVN": "Tôi đã định nghỉ ngơi nhưng vì nhiều việc quá nên thấy mệt." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664854_5.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=4aa6f5602920a4dd19d8b388dcc99a9a32d4f9da6f3f245723f0b546088dbb65",
+                "explain": "남자: 피곤하면 잠깐 쉬었다가 해요.\n여자: 이제 조금만 더 하면 끝날 것 같아요.\n남자:",
+                "titleVN": "Câu 4: Nghe kỹ đoạn hội thoại sau và chọn câu trả lời phù hợp nhất để tiếp nối.",
+                "explainVN": "Nam: Nếu mệt thì hãy nghỉ ngơi một lát rồi làm tiếp.\nNữ: Giờ chỉ cần làm thêm một chút nữa thôi là có vẻ xong rồi.\nNam: (Câu trả lời tiếp nối phù hợp nhất)"
+            },
+            {
+                "title": "Câu 5: 다음 대화를 잘 듣고 이어질 수 있는 말로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "내일 도착한다고 해요.", "url": "", "valueVN": "Nghe nói ngày mai sẽ đến nơi." },
+                    { "id": 2, "value": "조금 전에 찾아갔는데요.", "url": "", "valueVN": "Vừa nãy tôi đã đến lấy rồi." },
+                    { "id": 3, "value": "받아 주셔서 정말 감사합니다.", "url": "", "valueVN": "Thật sự cảm ơn vì đã nhận giúp tôi." },
+                    { "id": 4, "value": "택배가 도착하면 연락 좀 주세요.", "url": "", "valueVN": "Khi nào bưu phẩm đến thì vui lòng liên lạc cho tôi nhé." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682664936_6.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=2d5b0ab69aaac1a6eba9cf2d16e64318062c5f77f7cb9a2076e5149e2355cd74",
+                "explain": "여자: 아저씨, 206호인데 저희 집 택배 온 거 있나요?\n남자: 잠깐만 기다리세요. (잠시 후) 아직 안 왔는데요.\n여자: ①",
+                "titleVN": "Câu 5: Nghe kỹ đoạn hội thoại sau và chọn câu trả lời phù hợp nhất để tiếp nối.",
+                "explainVN": "Nữ: Chú ơi, tôi ở phòng 206, có bưu phẩm nào gửi đến nhà tôi không ạ?\nNam: Chờ một lát nhé. (Sau một lúc) Vẫn chưa thấy đến đâu.\nNữ: ①"
+            },
+            {
+                "title": "Câu 6: 다음 대화를 잘 듣고 이어질 수 있는 말로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "전화를 하지 그랬어요.", "url": "", "valueVN": "Đáng lẽ bạn nên gọi điện thoại chứ." },
+                    { "id": 2, "value": "늦을 거라고 말했잖아요.", "url": "", "valueVN": "Tôi đã nói là sẽ muộn rồi mà." },
+                    { "id": 3, "value": "다음부터는 늦지 않을게요.", "url": "", "valueVN": "Từ lần sau tôi sẽ không đến muộn nữa." },
+                    { "id": 4, "value": "30 분 후면 그쪽으로 갈 거예요.", "url": "", "valueVN": "Khoảng 30 phút nữa tôi sẽ đến đó." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682665140_7.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=dab2962663779bb7dc6c86c0daed33aad571477100eb89350da9bcb345b8c464",
+                "explain": "남자: 왜 이렇게 늦었어요?\n여자: 미안해요. 길을 몰라서 좀 돌아왔어요.\n남자: ①",
+                "titleVN": "Câu 6: Nghe kỹ đoạn hội thoại sau và chọn câu trả lời phù hợp nhất để tiếp nối.",
+                "explainVN": "Nam: Sao bạn lại đến muộn thế này?\nNữ: Xin lỗi nhé. Vì không biết đường nên tôi đã phải đi vòng một chút.\nNam: ①"
+            },
+            {
+                "title": "Câu 7: 다음 대화를 잘 듣고 이어질 수 있는 말로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "너무 기대하니까 부담스럽네요.", "url": "", "valueVN": "Vì bạn kỳ vọng quá nhiều nên tôi thấy hơi áp lực." },
+                    { "id": 2, "value": "꼭 좋은 결과가 나오길 바랄게요.", "url": "", "valueVN": "Tôi nhất định mong rằng sẽ có kết quả tốt." },
+                    { "id": 3, "value": "잘 될 줄 알았어요. 정말 축하해요.", "url": "", "valueVN": "Tôi đã biết là sẽ ổn mà. Thật sự chúc mừng bạn." },
+                    { "id": 4, "value": "너무 아쉽지만 다음에는 꼭 될 거예요.", "url": "", "valueVN": "Thật đáng tiếc nhưng lần sau nhất định sẽ được thôi." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682665209_8.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=fcf665935928dfa0fb2340606c4d5e014be8b7b370bbaa0ccbd4d520c7b7fa5b",
+                "explain": "여자: 면접시험 본 건 결과 나왔어요?\n남자: 아니요, 결과 발표가 내일이에요.\n여자: ②",
+                "titleVN": "Câu 7: Nghe kỹ đoạn hội thoại sau và chọn câu trả lời phù hợp nhất để tiếp nối.",
+                "explainVN": "Nữ: Đã có kết quả kỳ thi phỏng vấn chưa?\nNam: Chưa, ngày mai mới công bố kết quả.\nNữ: ②"
+            },
+            {
+                "title": "Câu 8: 다음 대화를 잘 듣고 이어질 수 있는 말로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "네, 걱정했는데 정말 다행이네요.", "url": "", "valueVN": "Vâng, tôi đã lo lắng nhưng thật may quá." },
+                    { "id": 2, "value": "다음 주에 검진을 받으러 와야겠어요.", "url": "", "valueVN": "Tuần sau tôi phải đến kiểm tra sức khỏe mới được." },
+                    { "id": 3, "value": "검사 결과가 나오는 대로 연락을 주세요.", "url": "", "valueVN": "Ngay khi có kết quả kiểm tra thì hãy liên lạc cho tôi nhé." },
+                    { "id": 4, "value": "어떻게 하면 좋아질 수 있을지 걱정이에요.", "url": "", "valueVN": "Tôi lo lắng không biết phải làm sao để khỏe hơn." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682665281_9.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=a4e8495b6b7ce44525afb18376ebef0d5f3599828e65ad29eedcec2ba431e0ef",
+                "explain": "여자: 건강 검진 결과를 보러 왔는데요.\n남자: 별다른 이상은 없는데 운동은 꾸준히 하셔야 합니다.\n여자: ①",
+                "titleVN": "Câu 8: Nghe kỹ đoạn hội thoại sau và chọn câu trả lời phù hợp nhất để tiếp nối.",
+                "explainVN": "Nữ: Tôi đến để xem kết quả kiểm tra sức khỏe.\nNam: Không có gì bất thường cả nhưng bạn cần phải tập thể dục đều đặn.\nNữ: ①"
+            },
+            {
+                "title": "Câu 9: 다음을 듣고 여자가 이어서 할 행동으로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "상담을 받는다.", "url": "", "valueVN": "Nhận tư vấn." },
+                    { "id": 2, "value": "번호표를 뽑는다.", "url": "", "valueVN": "Lấy số thứ tự." },
+                    { "id": 3, "value": "집으로 돌아간다.", "url": "", "valueVN": "Quay trở về nhà." },
+                    { "id": 4, "value": "대기석에서 기다린다.", "url": "", "valueVN": "Đợi ở ghế chờ." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682665404_10.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=51b15809fa5fc0d69f88481045c4914cf2d3afc3a2b54d7653b72926dcb536cb",
+                "explain": "여자: 휴대폰을 떨어뜨려서 전화가 안 되는데 고칠 수 있나요?\n남자: 네, 번호표를 뽑으시고 기다리시면 불러드릴게요.\n여자: 많이 기다려야 돼요?\n남자: 지금 손님이 몇 분 안 계시니까 조금만 기다리시면 됩니다.\n답: ②",
+                "titleVN": "Câu 9: Nghe đoạn hội thoại sau và chọn hành động tiếp theo phù hợp nhất của người phụ nữ.",
+                "explainVN": "Nam: Vâng, cô vui lòng lấy số thứ tự rồi chờ tôi gọi nhé. → ②"
+            },
+            {
+                "title": "Câu 10: 다음을 듣고 여자가 이어서 할 행동으로 가장 알맞은 것을 고르십시오.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "구매처로 간다.", "url": "", "valueVN": "Đi đến nơi mua." },
+                    { "id": 2, "value": "입장권을 산다.", "url": "", "valueVN": "Mua vé vào cổng." },
+                    { "id": 3, "value": "전시장에 들어간다.", "url": "", "valueVN": "Đi vào phòng triển lãm." },
+                    { "id": 4, "value": "신청서를 작성한다.", "url": "", "valueVN": "Viết đơn đăng ký." }
+                ],
+                "totalAnswer": 4,
+                "audio": "https://exam-bucket-v1.s3.ap-southeast-1.amazonaws.com/file/courses/1682665527_11.mp3?response-content-disposition=attachment%3B&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAYF46SVNCQBRCHMUA%2F20260728%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20260728T011317Z&X-Amz-SignedHeaders=host&X-Amz-Expires=172800&X-Amz-Signature=8647b222ffc216d4535db8e922788e5e3400ca7124024ec0d11ae588ea0c2d26",
+                "explain": "남자: 먼저 입장권을 구매하시고 해설 신청을 하셔야 합니다.\n여자: 어른 두 장 주세요.\n남자: 여기 있습니다. 그리고 이 신청서에 이름과 연락처를 적어 주세요.\n답: ④",
+                "titleVN": "Câu 10: Nghe đoạn hội thoại sau và chọn hành động tiếp theo phù hợp nhất của người phụ nữ.",
+                "explainVN": "Nam: Vui lòng viết tên cùng thông tin liên lạc vào đơn đăng ký này. → ④"
+            },
+            {
+                "title": "Câu 55: ( )에 들어갈 가장 알맞은 것을 고르십시오.\n운전을 하는데 졸려서 사고가 (               ).",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "나지 않았어요", "url": "", "valueVN": "đã không xảy ra" },
+                    { "id": 2, "value": "날 뻔했어요", "url": "", "valueVN": "suýt nữa thì xảy ra" },
+                    { "id": 3, "value": "나는 편이에요", "url": "", "valueVN": "thuộc diện hay xảy ra" },
+                    { "id": 4, "value": "날 수 있어요", "url": "", "valueVN": "có thể xảy ra" }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "Cấu trúc '-ㄹ/을 뻔하다' diễn tả việc suýt xảy ra → ②",
+                "titleVN": "Câu 55: Chọn đáp án đúng nhất để điền vào chỗ trống.\nĐang lái xe mà buồn ngủ quá nên tai nạn ( ).",
+                "explainVN": "Cấu trúc '-ㄹ/을 뻔하다' diễn tả một việc suýt chút nữa đã xảy ra → ②",
+                "answerIndex": 1
+            },
+            {
+                "title": "Câu 56: ( )에 들어갈 가장 알맞은 것을 고르십시오.\n이렇게 맛있는 걸 먹을 줄 알았으면 아까 빵을 (          )",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "먹을까 해요", "url": "", "valueVN": "định ăn" },
+                    { "id": 2, "value": "먹을 거예요", "url": "", "valueVN": "sẽ ăn" },
+                    { "id": 3, "value": "먹을 거예요", "url": "", "valueVN": "sẽ ăn" },
+                    { "id": 4, "value": "먹지 말 걸 그랬어요", "url": "", "valueVN": "biết thế đã không ăn" }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "빵을 먹은 것을 후회하는 내용이므로 ④가 답이 된다.",
+                "titleVN": "Câu 56: Chọn đáp án đúng nhất để điền vào chỗ trống.\nBiết là sẽ được ăn món ngon thế này thì nãy ( ) bánh mì.",
+                "explainVN": "Vì đây là nội dung hối hận về việc đã ăn bánh mì nên ④ là đáp án đúng.",
+                "answerIndex": 3
+            },
+            {
+                "title": "Câu 57: 밑줄 친 부분과 의미가 가장 비슷한 것을 고르십시오.\n이메일을 확인하는 대로 연락을 주시면 감사하겠습니다.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "확인하자마자", "url": "", "valueVN": "ngay sau khi kiểm tra" },
+                    { "id": 2, "value": "확인할 정도로", "url": "", "valueVN": "đến mức kiểm tra" },
+                    { "id": 3, "value": "확인하기는커녕", "url": "", "valueVN": "chưa nói đến việc kiểm tra" },
+                    { "id": 4, "value": "확인하는 데다가", "url": "", "valueVN": "thêm vào việc kiểm tra" }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "이메일을 확인하면 바로 연락을 달라는 말이므로 ①이 답이 된다.",
+                "titleVN": "Câu 57: Chọn phần có ý nghĩa giống nhất với phần được gạch chân.",
+                "explainVN": "Vì đây là câu yêu cầu liên lạc ngay sau khi kiểm tra email nên ① là đáp án đúng.",
+                "answerIndex": 0
+            },
+            {
+                "title": "Câu 58: 밑줄 친 부분과 의미가 가장 비슷한 것을 고르십시오.\n부모님께서 걱정하실 것 같아서 아프다는 말을 못 했어요.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "걱정하시도록", "url": "", "valueVN": "để bố mẹ lo lắng" },
+                    { "id": 2, "value": "걱정하시지만", "url": "", "valueVN": "bố mẹ lo lắng nhưng" },
+                    { "id": 3, "value": "걱정하실까 봐", "url": "", "valueVN": "lo sợ rằng bố mẹ sẽ lo lắng" },
+                    { "id": 4, "value": "걱정하시긴 해도", "url": "", "valueVN": "dù bố mẹ có lo lắng đi nữa" }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "부모님께 아프다는 말을 못한 이유를 말하고 있으므로 ③이 답이 된다.",
+                "titleVN": "Câu 58: Chọn phần có ý nghĩa giống nhất với phần được gạch chân.",
+                "explainVN": "Vì đang nói về lý do không thể bảo mình bị ốm với bố mẹ nên ③ là đáp án đúng.",
+                "answerIndex": 2
+            },
+            {
+                "title": "Câu 65: 다음 글 또는 그래프의 내용과 같은 것을 고르십시오.\n재활용 쓰레기로 분류해서 버리는 폐플라스틱 처리 문제가 심각한 수준에 이르렀다. 흔히 쓰레기의 처리 방법은 4가지로, 땅에 묻거나 태우기 그리고 바다에 버리거나 재활용을 하는 것이다. 재활용품의 경우에도 선별 작업을 거쳐 재활용이 불가능한 것들은 땅에 묻거나 태워 버리게 된다. 그러나 이를 담당하는 수거 업체들이 재정난 등을 이유로 수거 포기를 하는 사태도 예상되고 있어 보다 근본적인 대책 마련이 시급한 실정이다.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "다시 활용을 할 수 없는 쓰레기는 불에 태워 처리한다.", "url": "", "valueVN": "Rác thải không thể tái sử dụng được xử lý bằng cách đốt." },
+                    { "id": 2, "value": "재활용 쓰레기의 처리 문제는 어제오늘의 일이 아니다.", "url": "", "valueVN": "Vấn đề xử lý rác tái chế không phải là chuyện ngày một ngày hai." },
+                    { "id": 3, "value": "쓰레기 수거 업체가 운영을 하지 않아 문제가 심각하다.", "url": "", "valueVN": "Vấn đề nghiêm trọng vì các đơn vị thu gom rác không còn hoạt động." },
+                    { "id": 4, "value": "쓰레기의 처리 방법은 매우 다양해서 업체 관리가 어렵다.", "url": "", "valueVN": "Phương pháp xử lý rác rất đa dạng nên việc quản lý các đơn vị gặp khó khăn." }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "재활용이 불가능한 것들은 묻거나 태운다고 했으므로 ①이 답이 된다.",
+                "titleVN": "Câu 65: Chọn đáp án đúng với nội dung sau.",
+                "explainVN": "Vì đoạn văn đề cập rằng những thứ không thể tái chế sẽ được chôn lấp hoặc đốt bỏ nên đáp án đúng là ①.",
+                "answerIndex": 0
+            },
+            {
+                "title": "Câu 89: 다음을 읽고 글의 주제로 가장 알맞은 것을 고르십시오.\n여행은 일상에서 벗어나 낯선 곳에서의 새로운 경험일 수도 있고 평소에 가고 싶었던 곳이나 좋아하는 곳으로 떠나 자기만의 휴식 시간을 갖는 것일 수도 있다. 어느 쪽이든 여행은 그 자체만으로 설레고 기분 좋은 일이 아닐 수 없다. 모처럼 마음먹고 떠난 여행길에서 하나라도 더 보고 더 경험하기 위해 빡빡한 일정으로 아침부터 밤늦게까지 강행군을 하는 사람들도 있다. 그러나 참다운 여행이란 서두르지 않고 천천히 자신을 돌아보는 시간을 갖고 삶의 여유를 되찾는 기회가 아닐까.",
+                "image": "",
+                "score": 2,
+                "answers": [
+                    { "id": 1, "value": "여행을 떠나면 더 많이 보고 더 많이 경험하는 것이 좋다.", "url": "", "valueVN": "Khi đi du lịch, tốt nhất nên xem và trải nghiệm thật nhiều." },
+                    { "id": 2, "value": "자신만의 시간을 가지고 여유를 즐기는 것이 진정한 여행이다.", "url": "", "valueVN": "Tận hưởng sự thư thái và dành thời gian cho mình mới là du lịch thực sự." },
+                    { "id": 3, "value": "바쁜 일상을 떠나 가끔 낯선 곳으로 떠나보는 것도 필요하다.", "url": "", "valueVN": "Rời bỏ cuộc sống bận rộn để thỉnh thoảng đi nơi xa lạ là cần thiết." },
+                    { "id": 4, "value": "낯선 곳으로 떠나는 여행은 여유 있게 계획을 잘 세워야 한다.", "url": "", "valueVN": "Chuyến du lịch nơi xa lạ cần được lập kế hoạch tốt và thảnh thơi." }
+                ],
+                "totalAnswer": 4,
+                "audio": "",
+                "explain": "참다운 여행이란 서두르지 않고 천천히 자신을 돌아보는 삶의 여유를 갖는 것이라는 내용이 주제가 된다. → ②",
+                "titleVN": "Câu 89: Đọc đoạn văn và chọn ý chính phù hợp nhất.",
+                "explainVN": "Chủ đề là du lịch đúng nghĩa chính là cơ hội tìm lại sự thư thái → ②",
+                "answerIndex": 1
+            }
+        ];
+
+        // ─────────────────────────────────────────
+        // LABELS
+        // ─────────────────────────────────────────
+        const LABELS = ['A', 'B', 'C', 'D'];
+
+        // ─────────────────────────────────────────
+        // STATE
+        // ─────────────────────────────────────────
+        const state = {
+            userAnswers: {}, // qIdx -> optionIdx (0-based)
+            correct: 0,
+            wrong: 0,
+            seconds: 0,
+            timerInterval: null,
+        };
+
+        // ─────────────────────────────────────────
+        // EXTRACT ANSWER INDEX FROM EXPLAIN
+        // ─────────────────────────────────────────
+        function extractAnswerFromExplain(explain, explainVN) {
+            // Look for patterns like ①②③④ or ①, ②, etc.
+            const circleMap = { '①': 0, '②': 1, '③': 2, '④': 3 };
+            // Also look for patterns like "→ ①" or "답: ②" or "이므로 ③이"
+            const text = (explain || '') + ' ' + (explainVN || '');
+
+            // Priority: explicit 답: pattern
+            let m = text.match(/답\s*[:：]\s*([①②③④])/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern: "→ ①"
+            m = text.match(/→\s*([①②③④])/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern like "이므로 ①이" or "이므로 ②가" at end
+            m = text.match(/이므로\s*([①②③④])[이가]/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern: ends with ① or ②
+            m = text.match(/([①②③④])\s*[.。]?\s*$/);
+            if (m) return circleMap[m[1]];
+
+            // "①이 답", "②가 답"
+            m = text.match(/([①②③④])[이가]\s*답/);
+            if (m) return circleMap[m[1]];
+
+            // Also check numeric like "이므로 ①" or pattern with number+가/이 답
+            // Fallback patterns for number-based
+            // Pattern: "③이 답이 된다" style
+            m = text.match(/([①②③④])[이가]\s*(?:답이|정답)/);
+            if (m) return circleMap[m[1]];
+
+            return null; // unknown
+        }
+
+        // ─────────────────────────────────────────
+        // GET CORRECT INDEX FOR Q
+        // ─────────────────────────────────────────
+        function getCorrectIndex(q) {
+            if (typeof q.answerIndex === 'number') return q.answerIndex;
+            return extractAnswerFromExplain(q.explain, q.explainVN);
+        }
+
+        // ─────────────────────────────────────────
+        // PROCESS EXPLAIN TEXT: highlight answer marks
+        // ─────────────────────────────────────────
+        function processExplainText(text, correctIdx) {
+            if (!text) return '';
+            // Replace circled numbers with styled spans
+            const circleMap = { '①': 'A', '②': 'B', '③': 'C', '④': 'D' };
+            let out = text.replace(/[①②③④]/g, (ch) => {
+                const letter = circleMap[ch] || ch;
+                return `<span class="ans-mark">${letter}</span>`;
+            });
+            return out;
+        }
+
+        // ─────────────────────────────────────────
+        // TIMER
+        // ─────────────────────────────────────────
+        function startTimer() {
+            state.timerInterval = setInterval(() => {
+                state.seconds++;
+                const h = String(Math.floor(state.seconds / 3600)).padStart(2, '0');
+                const m = String(Math.floor((state.seconds % 3600) / 60)).padStart(2, '0');
+                const s = String(state.seconds % 60).padStart(2, '0');
+                const el = document.getElementById('timer');
+                el.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        // ─────────────────────────────────────────
+        // UPDATE STATS
+        // ─────────────────────────────────────────
+        function updateStats() {
+            const answered = Object.keys(state.userAnswers).length;
+            const total = QUESTIONS.length;
+            document.getElementById('stat-answered').textContent = answered;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-correct').textContent = state.correct;
+            document.getElementById('stat-wrong').textContent = state.wrong;
+            const pct = answered > 0 ? Math.round((state.correct / answered) * 100) : 0;
+            document.getElementById('stat-pct').textContent = pct + '%';
+            // progress bar
+            document.getElementById('progress-bar').style.width = Math.round((answered / total) * 100) + '%';
+        }
+
+        // ─────────────────────────────────────────
+        // RENDER QUESTIONS
+        // ─────────────────────────────────────────
+        function renderAll() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            QUESTIONS.forEach((q, qi) => {
+                const correctIdx = getCorrectIndex(q);
+                const hasAnswer = correctIdx !== null;
+
+                const card = document.createElement('div');
+                card.className = 'q-card q-anchor';
+                card.id = `q${qi}`;
+
+                // ── Question header ──
+                const qHeader = document.createElement('div');
+                qHeader.className = 'q-header';
+
+                const numEl = document.createElement('div');
+                numEl.className = 'q-num';
+                numEl.textContent = qi + 1;
+                numEl.id = `qnum-${qi}`;
+
+                const titleBlock = document.createElement('div');
+                titleBlock.className = 'q-title-block';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'q-title';
+                titleEl.textContent = q.title;
+
+                // toggle title translation
+                const titleToggle = document.createElement('button');
+                titleToggle.className = 'toggle-link';
+                titleToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch tiêu đề`;
+
+                const titleTrans = document.createElement('div');
+                titleTrans.className = 'translation';
+                titleTrans.textContent = q.titleVN || '';
+
+                titleToggle.addEventListener('click', () => {
+                    titleTrans.classList.toggle('visible');
+                    titleToggle.classList.toggle('open');
+                    titleToggle.querySelector('svg').style.transform = titleTrans.classList.contains('visible') ? 'rotate(180deg)' : '';
+                });
+
+                titleBlock.appendChild(titleEl);
+                if (q.titleVN) {
+                    titleBlock.appendChild(titleToggle);
+                    titleBlock.appendChild(titleTrans);
+                }
+
+                qHeader.appendChild(numEl);
+                qHeader.appendChild(titleBlock);
+                card.appendChild(qHeader);
+
+                // ── Question image ──
+                if (q.image) {
+                    const img = document.createElement('img');
+                    img.className = 'q-image';
+                    img.src = q.image;
+                    img.alt = 'Question image';
+                    card.appendChild(img);
+                }
+
+                // ── Audio ──
+                if (q.audio) {
+                    const audioWrap = document.createElement('div');
+                    audioWrap.className = 'q-audio';
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = q.audio;
+                    audioWrap.appendChild(audio);
+                    card.appendChild(audioWrap);
+                }
+
+                // ── Options ──
+                const optGrid = document.createElement('div');
+                optGrid.className = 'options-grid';
+
+                q.answers.forEach((ans, ai) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option';
+                    btn.dataset.qi = qi;
+                    btn.dataset.ai = ai;
+
+                    const label = document.createElement('div');
+                    label.className = 'opt-label';
+                    label.textContent = LABELS[ai];
+
+                    const body = document.createElement('div');
+                    body.className = 'opt-body';
+
+                    if (ans.url) {
+                        // image option
+                        const img = document.createElement('img');
+                        img.className = 'opt-img';
+                        img.src = ans.url;
+                        img.alt = `Option ${LABELS[ai]}`;
+                        body.appendChild(img);
+                    } else {
+                        const textEl = document.createElement('span');
+                        textEl.className = 'opt-text';
+                        textEl.textContent = ans.value;
+                        body.appendChild(textEl);
+
+                        if (ans.valueVN) {
+                            const transEl = document.createElement('span');
+                            transEl.className = 'opt-trans-text';
+                            transEl.textContent = ans.valueVN;
+                            transEl.id = `opt-trans-${qi}-${ai}`;
+                            body.appendChild(transEl);
+                        }
+                    }
+
+                    btn.appendChild(label);
+                    btn.appendChild(body);
+
+                    btn.addEventListener('click', () => handleOptionClick(qi, ai, btn, correctIdx));
+                    optGrid.appendChild(btn);
+                });
+
+                card.appendChild(optGrid);
+
+                // ── Options translation toggle ──
+                const hasOptTrans = q.answers.some(a => a.valueVN && !a.url);
+                if (hasOptTrans) {
+                    const optTransToggle = document.createElement('button');
+                    optTransToggle.className = 'toggle-link';
+                    optTransToggle.style.marginTop = '8px';
+                    optTransToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch đáp án`;
+                    optTransToggle.dataset.qi = qi;
+                    optTransToggle.addEventListener('click', () => {
+                        const isOpen = optTransToggle.classList.toggle('open');
+                        q.answers.forEach((_, ai2) => {
+                            const el = document.getElementById(`opt-trans-${qi}-${ai2}`);
+                            if (el) el.classList.toggle('visible', isOpen);
+                        });
+                    });
+                    card.appendChild(optTransToggle);
+                }
+
+                // ── Key button row ──
+                const keyRow = document.createElement('div');
+                keyRow.className = 'key-row';
+
+                const keyBtn = document.createElement('button');
+                keyBtn.className = 'btn-key';
+                keyBtn.textContent = 'Key';
+                keyBtn.id = `key-${qi}`;
+
+                const scoreInfo = document.createElement('span');
+                scoreInfo.className = 'score-badge';
+                scoreInfo.innerHTML = `Điểm: <span>${q.score}</span>`;
+
+                if (!hasAnswer) {
+                    const noAns = document.createElement('span');
+                    noAns.className = 'no-answer-note';
+                    noAns.textContent = '(Chưa có đáp án)';
+                    keyRow.appendChild(keyBtn);
+                    keyRow.appendChild(scoreInfo);
+                    keyRow.appendChild(noAns);
+                } else {
+                    keyRow.appendChild(keyBtn);
+                    keyRow.appendChild(scoreInfo);
+                }
+
+                card.appendChild(keyRow);
+
+                // ── Explain box ──
+                const explainBox = document.createElement('div');
+                explainBox.className = 'explain-box';
+                explainBox.id = `explain-${qi}`;
+
+                const explainLabel = document.createElement('div');
+                explainLabel.className = 'explain-label';
+                explainLabel.textContent = 'Giải thích';
+
+                const explainKo = document.createElement('div');
+                explainKo.className = 'explain-ko';
+                explainKo.innerHTML = processExplainText(q.explain, correctIdx);
+
+                const explainTransToggle = document.createElement('button');
+                explainTransToggle.className = 'toggle-link';
+                explainTransToggle.style.marginTop = '8px';
+                explainTransToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch giải thích`;
+
+                const explainVnEl = document.createElement('div');
+                explainVnEl.className = 'explain-vn';
+                explainVnEl.innerHTML = processExplainText(q.explainVN, correctIdx);
+
+                explainTransToggle.addEventListener('click', () => {
+                    const open = explainTransToggle.classList.toggle('open');
+                    explainVnEl.classList.toggle('visible', open);
+                });
+
+                explainBox.appendChild(explainLabel);
+                explainBox.appendChild(explainKo);
+                if (q.explainVN) {
+                    explainBox.appendChild(explainTransToggle);
+                    explainBox.appendChild(explainVnEl);
+                }
+
+                card.appendChild(explainBox);
+
+                // Key button event
+                keyBtn.addEventListener('click', () => {
+                    const isActive = keyBtn.classList.toggle('active');
+                    explainBox.classList.toggle('visible', isActive);
+                    keyBtn.textContent = isActive ? 'Ẩn' : 'Key';
+
+                    // highlight correct answer
+                    if (isActive && hasAnswer) {
+                        const opts = optGrid.querySelectorAll('.option');
+                        opts.forEach((opt, ai2) => {
+                            if (ai2 === correctIdx) {
+                                opt.classList.add('correct-ans');
+                            }
+                        });
+                    } else {
+                        const opts = optGrid.querySelectorAll('.option');
+                        opts.forEach(opt => opt.classList.remove('correct-ans'));
+                    }
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        // ─────────────────────────────────────────
+        // HANDLE OPTION CLICK
+        // ─────────────────────────────────────────
+        function handleOptionClick(qi, ai, clickedBtn, correctIdx) {
+            const prevAi = state.userAnswers[qi];
+            const hasAnswer = correctIdx !== null;
+
+            // Deselect previous
+            if (prevAi !== undefined) {
+                const prevBtn = document.querySelector(`.option[data-qi="${qi}"][data-ai="${prevAi}"]`);
+                if (prevBtn) prevBtn.classList.remove('selected');
+
+                // Update stats
+                if (hasAnswer) {
+                    if (prevAi === correctIdx) state.correct = Math.max(0, state.correct - 1);
+                    else state.wrong = Math.max(0, state.wrong - 1);
+                }
+            }
+
+            // Select new
+            clickedBtn.classList.add('selected');
+            state.userAnswers[qi] = ai;
+
+            // Update num circle
+            const numEl = document.getElementById(`qnum-${qi}`);
+            if (hasAnswer) {
+                if (ai === correctIdx) {
+                    numEl.classList.remove('answered');
+                    numEl.classList.add('correct');
+                    state.correct++;
+                } else {
+                    numEl.classList.remove('correct');
+                    numEl.classList.add('answered');
+                    if (prevAi !== correctIdx) state.wrong++;
+                }
+            } else {
+                numEl.classList.add('answered');
+            }
+
+            updateStats();
+        }
+
+        // ─────────────────────────────────────────
+        // BUILD NAV BUTTONS
+        // ─────────────────────────────────────────
+        function buildNavButtons() {
+            const wrap = document.getElementById('nav-btns');
+            // Buttons for: 1, then 10,20,30,...100
+            const targets = [1];
+            for (let i = 10; i <= 100; i += 10) targets.push(i);
+
+            targets.forEach(n => {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.textContent = n === 1 ? '1' : n;
+                btn.title = `Đến câu ${n}`;
+                btn.addEventListener('click', () => {
+                    // Find question with index n-1 (0-based)
+                    const idx = n - 1;
+                    const el = document.getElementById(`q${idx}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                wrap.appendChild(btn);
+            });
+        }
+
+        // ─────────────────────────────────────────
+        // INIT
+        // ─────────────────────────────────────────
+        function init() {
+            renderAll();
+            buildNavButtons();
+            updateStats();
+            startTimer();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
