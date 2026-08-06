@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Korean - Exam D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script src="data.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3347;
+            --text: #d4d8f0;
+            --text-muted: #7a82a8;
+            --text-dim: #4a5175;
+            --accent: #5b7cf6;
+            --accent-soft: rgba(91, 124, 246, 0.15);
+            --green: #22c55e;
+            --green-soft: rgba(34, 197, 94, 0.18);
+            --green-border: rgba(34, 197, 94, 0.4);
+            --yellow: #fbbf24;
+            --red: #f87171;
+            --option-hover: #252a40;
+            --option-selected: #1e2d4a;
+            --option-correct: #0f2d1a;
+            --option-border-correct: #22c55e;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        /* ── HEADER ── */
+        #header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+        }
+
+        #header-inner {
+            max-width: 1920px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 500px 1fr 500px;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* left stats */
+        #stats {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .stat-val {
+            font-family: 'Inter', monospace;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .stat-correct {
+            color: var(--green);
+        }
+
+        .stat-wrong {
+            color: var(--red);
+        }
+
+        /* center timer */
+        #timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #timer {
+            font-family: 'Inter', monospace;
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        #timer.warning {
+            color: var(--yellow);
+        }
+
+        #timer-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* right nav buttons */
+        #nav-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        .nav-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        /* ── MAIN ── */
+        #main {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 28px 24px 80px;
+        }
+
+        /* ── QUESTION CARD ── */
+        .q-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px 26px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .q-card:hover {
+            border-color: #3a3f5a;
+        }
+
+        /* question header */
+        .q-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .q-num {
+            flex-shrink: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .q-num.answered {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .q-num.correct {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .q-title-block {
+            flex: 1;
+        }
+
+        .q-title {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        /* toggle translation link */
+        .toggle-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--text-dim);
+            cursor: pointer;
+            margin-top: 4px;
+            text-decoration: none;
+            user-select: none;
+            transition: color 0.15s;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .toggle-link:hover {
+            color: var(--accent);
+        }
+
+        .toggle-link svg {
+            width: 12px;
+            height: 12px;
+            transition: transform 0.2s;
+        }
+
+        .toggle-link.open svg {
+            transform: rotate(180deg);
+        }
+
+        /* translation box */
+        .translation {
+            display: none;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid var(--border);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+
+        .translation.visible {
+            display: block;
+        }
+
+        /* question image */
+        .q-image {
+            display: block;
+            width: 600px;
+            max-width: 100%;
+            margin: 14px auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        /* audio player */
+        .q-audio {
+            margin: 10px 0;
+        }
+
+        .q-audio audio {
+            width: 100%;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            outline: none;
+        }
+
+        /* ── OPTIONS ── */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+            width: 100%;
+            color: var(--text);
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .option:hover:not(:disabled) {
+            border-color: var(--accent);
+            background: var(--option-hover);
+        }
+
+        .option.selected {
+            border-color: var(--accent);
+            background: var(--option-selected);
+        }
+
+        .option.correct-ans {
+            border-color: var(--option-border-correct) !important;
+            background: var(--option-correct) !important;
+        }
+
+        .opt-label {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 1px;
+            transition: all 0.15s;
+        }
+
+        .option.selected .opt-label {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .option.correct-ans .opt-label {
+            color: var(--green) !important;
+            border-color: var(--green) !important;
+            background: var(--green-soft);
+        }
+
+        .opt-body {
+            flex: 1;
+        }
+
+        .opt-text {
+            display: block;
+        }
+
+        .opt-img {
+            width: 400px;
+            border-radius: 4px;
+            margin-top: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* options translation row */
+        .options-trans-wrap {
+            margin-top: 6px;
+        }
+
+        .opt-trans-text {
+            display: none;
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+            margin-top: 3px;
+        }
+
+        .opt-trans-text.visible {
+            display: block;
+        }
+
+        /* ── KEY BUTTON ── */
+        .key-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .btn-key {
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: all 0.15s;
+        }
+
+        .btn-key:hover {
+            border-color: var(--green);
+            color: var(--green);
+        }
+
+        .btn-key.active {
+            border-color: var(--green);
+            color: var(--green);
+            background: var(--green-soft);
+        }
+
+        .score-badge {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .score-badge span {
+            color: var(--yellow);
+            font-weight: 600;
+        }
+
+        /* ── EXPLAIN BOX ── */
+        .explain-box {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: rgba(34, 197, 94, 0.05);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        .explain-box.visible {
+            display: block;
+        }
+
+        .explain-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .explain-ko {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13.5px;
+            color: var(--text);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .explain-vn {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(34, 197, 94, 0.15);
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+
+        .explain-vn.visible {
+            display: block;
+        }
+
+        /* bold answer mark inside explain */
+        .ans-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--green);
+            color: #0a1a0e;
+            font-size: 12px;
+            font-weight: 800;
+            margin: 0 2px;
+            vertical-align: middle;
+        }
+
+        /* ── PROGRESS BAR ── */
+        #progress-bar-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--surface2);
+            z-index: 200;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #a78bfa);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5175;
+        }
+
+        /* anchor for jump nav */
+        .q-anchor {
+            scroll-margin-top: 80px;
+        }
+
+        /* score pill */
+        .no-answer-note {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <div id="header">
+        <div id="header-inner">
+            <!-- Left: Stats -->
+            <div id="stats">
+                <div class="stat-row">
+                    Đã trả lời: <span class="stat-val" id="stat-answered">0</span>
+                    <span style="color:var(--text-dim)">/ <span id="stat-total">0</span></span>
+                </div>
+                <div class="stat-row">
+                    Đúng: <span class="stat-val stat-correct" id="stat-correct">0</span>
+                    &nbsp;·&nbsp;
+                    Sai: <span class="stat-val stat-wrong" id="stat-wrong">0</span>
+                    &nbsp;·&nbsp;
+                    <span id="stat-pct" style="color:var(--text-muted);font-size:12px">0%</span>
+                </div>
+            </div>
+
+            <!-- Center: Timer -->
+            <div id="timer-wrap">
+                <div id="timer">00:00:00</div>
+                <div id="timer-label">Thời gian</div>
+            </div>
+
+            <!-- Right: Jump buttons -->
+            <div id="nav-btns">
+                <!-- generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+        <div id="questions-container"></div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div id="progress-bar-wrap">
+        <div id="progress-bar"></div>
+    </div>
+
+    <script>
+
+        // ─────────────────────────────────────────
+        // LABELS
+        // ─────────────────────────────────────────
+        const LABELS = ['A', 'B', 'C', 'D'];
+
+        // ─────────────────────────────────────────
+        // STATE
+        // ─────────────────────────────────────────
+        const state = {
+            userAnswers: {}, // qIdx -> optionIdx (0-based)
+            correct: 0,
+            wrong: 0,
+            seconds: 0,
+            timerInterval: null,
+        };
+
+        // ─────────────────────────────────────────
+        // EXTRACT ANSWER INDEX FROM EXPLAIN
+        // ─────────────────────────────────────────
+        function extractAnswerFromExplain(explain, explain_translation) {
+            // Look for patterns like ①②③④ or ①, ②, etc.
+            const circleMap = { '①': 0, '②': 1, '③': 2, '④': 3 };
+            // Also look for patterns like "→ ①" or "답: ②" or "이므로 ③이"
+            const text = (explain || '') + ' ' + (explain_translation || '');
+
+            // Priority: explicit 답: pattern
+            let m = text.match(/답\s*[:：]\s*([①②③④])/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern: "→ ①"
+            m = text.match(/→\s*([①②③④])/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern like "이므로 ①이" or "이므로 ②가" at end
+            m = text.match(/이므로\s*([①②③④])[이가]/);
+            if (m) return circleMap[m[1]];
+
+            // Pattern: ends with ① or ②
+            m = text.match(/([①②③④])\s*[.。]?\s*$/);
+            if (m) return circleMap[m[1]];
+
+            // "①이 답", "②가 답"
+            m = text.match(/([①②③④])[이가]\s*답/);
+            if (m) return circleMap[m[1]];
+
+            // Also check numeric like "이므로 ①" or pattern with number+가/이 답
+            // Fallback patterns for number-based
+            // Pattern: "③이 답이 된다" style
+            m = text.match(/([①②③④])[이가]\s*(?:답이|정답)/);
+            if (m) return circleMap[m[1]];
+
+            return null; // unknown
+        }
+
+        // ─────────────────────────────────────────
+        // GET CORRECT INDEX FOR Q
+        // ─────────────────────────────────────────
+        function getCorrectIndex(q) {
+            if (typeof q.correct_index === 'number') return q.correct_index;
+            return extractAnswerFromExplain(q.explain, q.explain_translation);
+        }
+
+        // ─────────────────────────────────────────
+        // PROCESS EXPLAIN TEXT: highlight answer marks
+        // ─────────────────────────────────────────
+        function processExplainText(text, correctIdx) {
+            if (!text) return '';
+            // Replace circled numbers with styled spans
+            const circleMap = { '①': 'A', '②': 'B', '③': 'C', '④': 'D' };
+            let out = text.replace(/[①②③④]/g, (ch) => {
+                const letter = circleMap[ch] || ch;
+                return `<span class="ans-mark">${letter}</span>`;
+            });
+            return out;
+        }
+
+        // ─────────────────────────────────────────
+        // TIMER
+        // ─────────────────────────────────────────
+        function startTimer() {
+            state.timerInterval = setInterval(() => {
+                state.seconds++;
+                const h = String(Math.floor(state.seconds / 3600)).padStart(2, '0');
+                const m = String(Math.floor((state.seconds % 3600) / 60)).padStart(2, '0');
+                const s = String(state.seconds % 60).padStart(2, '0');
+                const el = document.getElementById('timer');
+                el.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
+
+        // ─────────────────────────────────────────
+        // UPDATE STATS
+        // ─────────────────────────────────────────
+        function updateStats() {
+            const answered = Object.keys(state.userAnswers).length;
+            const total = QUESTIONS.length;
+            document.getElementById('stat-answered').textContent = answered;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-correct').textContent = state.correct;
+            document.getElementById('stat-wrong').textContent = state.wrong;
+            const pct = answered > 0 ? Math.round((state.correct / answered) * 100) : 0;
+            document.getElementById('stat-pct').textContent = pct + '%';
+            // progress bar
+            document.getElementById('progress-bar').style.width = Math.round((answered / total) * 100) + '%';
+        }
+
+        // ─────────────────────────────────────────
+        // RENDER QUESTIONS
+        // ─────────────────────────────────────────
+        function renderAll() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            QUESTIONS.forEach((q, qi) => {
+                const correctIdx = getCorrectIndex(q);
+                const hasAnswer = correctIdx !== null;
+
+                const card = document.createElement('div');
+                card.className = 'q-card q-anchor';
+                card.id = `q${qi}`;
+
+                // ── Question header ──
+                const qHeader = document.createElement('div');
+                qHeader.className = 'q-header';
+
+                const numEl = document.createElement('div');
+                numEl.className = 'q-num';
+                numEl.textContent = qi + 1;
+                numEl.id = `qnum-${qi}`;
+
+                const titleBlock = document.createElement('div');
+                titleBlock.className = 'q-title-block';
+
+                const titleEl = document.createElement('div');
+                titleEl.className = 'q-title';
+                titleEl.textContent = `${q.title} (${q.score} điểm)`;
+
+                // toggle title translation
+                const titleToggle = document.createElement('button');
+                titleToggle.className = 'toggle-link';
+                titleToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch tiêu đề`;
+
+                const titleTrans = document.createElement('div');
+                titleTrans.className = 'translation';
+                titleTrans.textContent = q.title_translation || '';
+
+                titleToggle.addEventListener('click', () => {
+                    titleTrans.classList.toggle('visible');
+                    titleToggle.classList.toggle('open');
+                    titleToggle.querySelector('svg').style.transform = titleTrans.classList.contains('visible') ? 'rotate(180deg)' : '';
+                });
+
+                titleBlock.appendChild(titleEl);
+                if (q.title_translation) {
+                    titleBlock.appendChild(titleToggle);
+                    titleBlock.appendChild(titleTrans);
+                }
+
+                qHeader.appendChild(numEl);
+                qHeader.appendChild(titleBlock);
+                card.appendChild(qHeader);
+
+                // ── Question image ──
+                if (q.image_file) {
+                    const img = document.createElement('img');
+                    img.className = 'q-image';
+                    img.src = q.image_file;
+                    img.alt = 'Question image';
+                    card.appendChild(img);
+                }
+
+                // ── Audio ──
+                if (q.audio_file) {
+                    const audioWrap = document.createElement('div');
+                    audioWrap.className = 'q-audio';
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = q.audio_file;
+                    audioWrap.appendChild(audio);
+                    card.appendChild(audioWrap);
+                }
+
+                // ── Options ──
+                const optGrid = document.createElement('div');
+                optGrid.className = 'options-grid';
+
+                q.answers.forEach((ans, ai) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option';
+                    btn.dataset.qi = qi;
+                    btn.dataset.ai = ai;
+
+                    const label = document.createElement('div');
+                    label.className = 'opt-label';
+                    label.textContent = LABELS[ai];
+
+                    const body = document.createElement('div');
+                    body.className = 'opt-body';
+
+                    if (ans.file) {
+                        // image option
+                        const img = document.createElement('img');
+                        img.className = 'opt-img';
+                        img.src = ans.file;
+                        img.alt = `Option ${LABELS[ai]}`;
+                        body.appendChild(img);
+                    } else {
+                        const textEl = document.createElement('span');
+                        textEl.className = 'opt-text';
+                        textEl.textContent = ans.value;
+                        body.appendChild(textEl);
+
+                        if (ans.value_translation) {
+                            const transEl = document.createElement('span');
+                            transEl.className = 'opt-trans-text';
+                            transEl.textContent = ans.value_translation;
+                            transEl.id = `opt-trans-${qi}-${ai}`;
+                            body.appendChild(transEl);
+                        }
+                    }
+
+                    btn.appendChild(label);
+                    btn.appendChild(body);
+
+                    btn.addEventListener('click', () => handleOptionClick(qi, ai, btn, correctIdx));
+                    optGrid.appendChild(btn);
+                });
+
+                card.appendChild(optGrid);
+
+                // ── Options translation toggle ──
+                const hasOptTrans = q.answers.some(a => a.value_translation && !a.url);
+                if (hasOptTrans) {
+                    const optTransToggle = document.createElement('button');
+                    optTransToggle.className = 'toggle-link';
+                    optTransToggle.style.marginTop = '8px';
+                    optTransToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch đáp án`;
+                    optTransToggle.dataset.qi = qi;
+                    optTransToggle.addEventListener('click', () => {
+                        const isOpen = optTransToggle.classList.toggle('open');
+                        q.answers.forEach((_, ai2) => {
+                            const el = document.getElementById(`opt-trans-${qi}-${ai2}`);
+                            if (el) el.classList.toggle('visible', isOpen);
+                        });
+                    });
+                    card.appendChild(optTransToggle);
+                }
+
+                // ── Key button row ──
+                const keyRow = document.createElement('div');
+                keyRow.className = 'key-row';
+
+                const keyBtn = document.createElement('button');
+                keyBtn.className = 'btn-key';
+                keyBtn.textContent = 'Key';
+                keyBtn.id = `key-${qi}`;
+
+                if (!hasAnswer) {
+                    const noAns = document.createElement('span');
+                    noAns.className = 'no-answer-note';
+                    noAns.textContent = '(Chưa có đáp án)';
+                    keyRow.appendChild(keyBtn);
+                    keyRow.appendChild(noAns);
+                } else {
+                    keyRow.appendChild(keyBtn);
+                }
+
+                card.appendChild(keyRow);
+
+                // ── Explain box ──
+                const explainBox = document.createElement('div');
+                explainBox.className = 'explain-box';
+                explainBox.id = `explain-${qi}`;
+
+                const explainLabel = document.createElement('div');
+                explainLabel.className = 'explain-label';
+                explainLabel.textContent = 'Giải thích';
+
+                const explainKo = document.createElement('div');
+                explainKo.className = 'explain-ko';
+                explainKo.innerHTML = processExplainText(q.explain, correctIdx);
+
+                const explainTransToggle = document.createElement('button');
+                explainTransToggle.className = 'toggle-link';
+                explainTransToggle.style.marginTop = '8px';
+                explainTransToggle.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 6 8 10 12 6"/></svg> Dịch giải thích`;
+
+                const explain_translationEl = document.createElement('div');
+                explain_translationEl.className = 'explain-vn';
+                explain_translationEl.innerHTML = processExplainText(q.explain_translation, correctIdx);
+
+                explainTransToggle.addEventListener('click', () => {
+                    const open = explainTransToggle.classList.toggle('open');
+                    explain_translationEl.classList.toggle('visible', open);
+                });
+
+                explainBox.appendChild(explainLabel);
+                explainBox.appendChild(explainKo);
+                if (q.explain_translation) {
+                    explainBox.appendChild(explainTransToggle);
+                    explainBox.appendChild(explain_translationEl);
+                }
+
+                card.appendChild(explainBox);
+
+                // Key button event
+                keyBtn.addEventListener('click', () => {
+                    const isActive = keyBtn.classList.toggle('active');
+                    explainBox.classList.toggle('visible', isActive);
+                    keyBtn.textContent = isActive ? 'Ẩn' : 'Key';
+
+                    // highlight correct answer
+                    if (isActive && hasAnswer) {
+                        const opts = optGrid.querySelectorAll('.option');
+                        opts.forEach((opt, ai2) => {
+                            if (ai2 === correctIdx) {
+                                opt.classList.add('correct-ans');
+                            }
+                        });
+                    } else {
+                        const opts = optGrid.querySelectorAll('.option');
+                        opts.forEach(opt => opt.classList.remove('correct-ans'));
+                    }
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        // ─────────────────────────────────────────
+        // HANDLE OPTION CLICK
+        // ─────────────────────────────────────────
+        function handleOptionClick(qi, ai, clickedBtn, correctIdx) {
+            const prevAi = state.userAnswers[qi];
+            const hasAnswer = correctIdx !== null;
+
+            // Deselect previous
+            if (prevAi !== undefined) {
+                const prevBtn = document.querySelector(`.option[data-qi="${qi}"][data-ai="${prevAi}"]`);
+                if (prevBtn) prevBtn.classList.remove('selected');
+
+                // Update stats
+                if (hasAnswer) {
+                    if (prevAi === correctIdx) state.correct = Math.max(0, state.correct - 1);
+                    else state.wrong = Math.max(0, state.wrong - 1);
+                }
+            }
+
+            // Select new
+            clickedBtn.classList.add('selected');
+            state.userAnswers[qi] = ai;
+
+            // Update num circle
+            const numEl = document.getElementById(`qnum-${qi}`);
+            if (hasAnswer) {
+                if (ai === correctIdx) {
+                    numEl.classList.remove('answered');
+                    numEl.classList.add('correct');
+                    state.correct++;
+                } else {
+                    numEl.classList.remove('correct');
+                    numEl.classList.add('answered');
+                    if (prevAi !== correctIdx) state.wrong++;
+                }
+            } else {
+                numEl.classList.add('answered');
+            }
+
+            updateStats();
+        }
+
+        // ─────────────────────────────────────────
+        // BUILD NAV BUTTONS
+        // ─────────────────────────────────────────
+        function buildNavButtons() {
+            const wrap = document.getElementById('nav-btns');
+            // Buttons for: 1, then 10,20,30,...100
+            const targets = [1];
+            for (let i = 10; i <= 100; i += 10) targets.push(i);
+
+            targets.forEach(n => {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn';
+                btn.textContent = n === 1 ? '1' : n;
+                btn.title = `Đến câu ${n}`;
+                btn.addEventListener('click', () => {
+                    // Find question with index n-1 (0-based)
+                    const idx = n - 1;
+                    const el = document.getElementById(`q${idx}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                wrap.appendChild(btn);
+            });
+        }
+
+        // ─────────────────────────────────────────
+        // INIT
+        // ─────────────────────────────────────────
+        function init() {
+            renderAll();
+            buildNavButtons();
+            updateStats();
+            startTimer();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>

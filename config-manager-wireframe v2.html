@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config Manager — Wireframe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Patrick+Hand&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --sketch-font: 'Patrick Hand', 'Architects Daughter', cursive, sans-serif;
+      --bg: #f5f5f0;
+      --surface: #ffffff;
+      --border: #333;
+      --muted: #666;
+      --light: #999;
+      --highlight: #4a90d9;
+      --danger: #c0392b;
+      --success: #27ae60;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--border);
+      font-family: var(--sketch-font);
+      font-size: 16px;
+      line-height: 1.4;
+      padding: 24px;
+    }
+
+    .sketch {
+      border: 2px solid var(--border);
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+      box-shadow: 1px 2px 0 rgba(0, 0, 0, .08);
+    }
+
+    .sketch-rect {
+      border: 2px solid var(--border);
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+    }
+
+    .wire-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      font-family: var(--sketch-font);
+      font-size: 15px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+      cursor: default;
+      color: var(--border);
+    }
+
+    .wire-btn.primary {
+      background: #d6e6f5;
+      border-color: var(--highlight);
+      color: var(--highlight);
+    }
+
+    .wire-btn.danger {
+      background: #fde8e8;
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .wire-btn.success {
+      background: #e0f5e9;
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .wire-input {
+      padding: 6px 10px;
+      font-family: var(--sketch-font);
+      font-size: 15px;
+      background: var(--surface);
+      border: 2px solid #bbb;
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      color: var(--muted);
+      width: 100%;
+    }
+
+    .wire-chip {
+      display: inline-block;
+      padding: 3px 12px;
+      font-family: var(--sketch-font);
+      font-size: 14px;
+      border: 2px solid #bbb;
+      border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+      color: var(--muted);
+      background: var(--surface);
+    }
+
+    .wire-chip.active {
+      border-color: var(--highlight);
+      color: var(--highlight);
+      background: #d6e6f5;
+    }
+
+    .wire-nav {
+      padding: 6px 12px;
+      font-size: 15px;
+      border-left: 3px solid transparent;
+      color: var(--muted);
+    }
+
+    .wire-nav.active {
+      border-left-color: var(--highlight);
+      background: #d6e6f5;
+      color: var(--highlight);
+    }
+
+    .wire-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--sketch-font);
+      font-size: 14px;
+    }
+
+    .wire-table th {
+      background: #e8e8e3;
+      border: 2px solid var(--border);
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: normal;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .wire-table td {
+      border: 2px solid #ccc;
+      padding: 6px 10px;
+      vertical-align: middle;
+    }
+
+    .wire-table tr:nth-child(even) td {
+      background: #fafaf5;
+    }
+
+    .wire-table tr.clickable {
+      cursor: pointer;
+    }
+
+    .wire-table tr.clickable:hover td {
+      background: #e8f0f8;
+    }
+
+    .wire-badge {
+      display: inline-block;
+      padding: 1px 8px;
+      font-family: var(--sketch-font);
+      font-size: 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      background: #eee;
+      color: var(--muted);
+    }
+
+    .wire-config-type {
+      display: inline-block;
+      padding: 1px 8px;
+      font-family: var(--sketch-font);
+      font-size: 13px;
+      border: 1.5px solid;
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+    }
+
+    .wire-config-type.extract {
+      border-color: var(--highlight);
+      color: var(--highlight);
+      background: #d6e6f5;
+    }
+
+    .wire-config-type.verify {
+      border-color: #8e44ad;
+      color: #8e44ad;
+      background: #f0e6f6;
+    }
+
+    .wire-config-type.integration {
+      border-color: var(--success);
+      color: var(--success);
+      background: #e0f5e9;
+    }
+
+    .annotation {
+      position: absolute;
+      background: #fff9c4;
+      border: 2px solid #f9a825;
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #6d5e00;
+      max-width: 240px;
+      box-shadow: 2px 3px 0 rgba(0, 0, 0, .1);
+      z-index: 10;
+      display: none;
+    }
+
+    .wire-section-label {
+      font-size: 11px;
+      letter-spacing: .1em;
+      color: var(--light);
+      text-transform: uppercase;
+      padding: 8px 0 4px;
+    }
+
+    .wire-collapse {
+      border: 2px solid var(--border);
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      margin-bottom: 12px;
+    }
+
+    .wire-collapse-header {
+      background: #e8e8e3;
+      padding: 8px 12px;
+      font-size: 15px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .wire-collapse-body {
+      padding: 12px;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 24px;
+      color: var(--border);
+    }
+
+    .page-title span {
+      border-bottom: 3px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .wireframe-page {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      position: relative;
+    }
+
+    .wire-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      margin-bottom: 2px;
+    }
+
+    .wire-body {
+      display: flex;
+      border: 2px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 3px 255px / 0 0 255px 3px;
+      min-height: 400px;
+      background: var(--surface);
+    }
+
+    .wire-sidebar {
+      width: 180px;
+      flex-shrink: 0;
+      border-right: 2px solid var(--border);
+      background: #f0f0eb;
+      padding: 12px;
+    }
+
+    .wire-main {
+      flex: 1;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .wire-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      margin-bottom: 12px;
+      border-bottom: 2px dashed #ccc;
+    }
+
+    .wire-toolbar-left h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: normal;
+    }
+
+    .wire-toolbar-left p {
+      margin: 2px 0 0;
+      font-size: 13px;
+      color: var(--light);
+    }
+
+    .wire-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wire-placeholder-text {
+      color: var(--light);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    .wire-check {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-radius: 2px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 6px;
+      background: var(--surface);
+      position: relative;
+    }
+
+    .wire-check.checked::after {
+      content: '\2714';
+      position: absolute;
+      top: -4px;
+      left: 1px;
+      font-size: 14px;
+      color: var(--highlight);
+    }
+
+    .wire-select {
+      padding: 6px 10px;
+      font-family: var(--sketch-font);
+      font-size: 15px;
+      background: var(--surface);
+      border: 2px solid #bbb;
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      color: var(--muted);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+    }
+
+    .wire-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .wire-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .wire-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 3px;
+      display: block;
+    }
+
+    .wire-divider {
+      border: none;
+      border-top: 2px dashed #ccc;
+      margin: 16px 0;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--light);
+      margin-bottom: 4px;
+    }
+
+    .breadcrumb a {
+      color: var(--highlight);
+      cursor: default;
+    }
+
+    .key-mono {
+      font-family: var(--sketch-font);
+      font-size: 14px;
+      color: var(--highlight);
+      font-weight: bold;
+    }
+
+    /* Mandatory section highlight */
+    .wire-mandatory-section {
+      border: 2px solid #f9a825;
+      border-radius: 3px 255px 3px 255px / 255px 3px 255px 3px;
+      margin-bottom: 12px;
+    }
+
+    .wire-mandatory-header {
+      background: #fff9c4;
+      padding: 8px 12px;
+      font-size: 15px;
+      border-bottom: 2px solid #f9a825;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #6d5e00;
+    }
+
+    .wire-mandatory-body {
+      padding: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-title"><span>Config Manager — Wireframe</span></div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 1: MASTER CONFIGS TABLE                               -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+    <div class="annotation" style="top:-10px;right:20px;">
+      Master configs managed as a table.<br>
+      Click row to view/edit fields inside.
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="wire-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div
+          style="width:32px;height:32px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify:center;font-size:16px;">
+          &#9776;</div>
+        <strong style="font-size:18px;">ASCA</strong>
+        <span class="wire-badge">AI-based Smart Customs Agent</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="wire-btn">&#8681; Export</div>
+        <div class="wire-btn">&#8683; Import</div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="wire-body">
+      <!-- SIDEBAR -->
+      <div class="wire-sidebar">
+        <div class="wire-section-label">Features</div>
+        <div class="wire-nav active" style="margin-top:8px;">&#128455; Master Configs</div>
+        <div class="wire-nav">&#128193; Case Configs</div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="wire-main">
+        <div class="wire-toolbar">
+          <div class="wire-toolbar-left">
+            <h2>Master Configs</h2>
+            <p>Manage field registries and definitions</p>
+          </div>
+          <div class="wire-toolbar-right">
+            <div class="wire-btn primary">+ New Master Config</div>
+          </div>
+        </div>
+
+        <table class="wire-table">
+          <thead>
+            <tr>
+              <th style="width:50px;">ID</th>
+              <th>Key</th>
+              <th style="width:80px;">Entries</th>
+              <th style="width:110px;">Created On</th>
+              <th style="width:110px;">Modified On</th>
+              <th style="width:100px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable">
+              <td>1</td>
+              <td><span class="key-mono">master_field_registry</span></td>
+              <td><span class="wire-badge">30</span></td>
+              <td class="wire-placeholder-text">2025-06-15</td>
+              <td class="wire-placeholder-text">2025-08-01</td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+            <tr class="clickable">
+              <td>2</td>
+              <td><span class="key-mono">sea_freight_fields</span></td>
+              <td><span class="wire-badge">12</span></td>
+              <td class="wire-placeholder-text">2025-07-01</td>
+              <td class="wire-placeholder-text">2025-07-20</td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 2: MASTER CONFIG DETAIL — FIELDS TABLE                -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+    <div class="annotation" style="top:0;left:200px;">
+      Breadcrumb navigation back to list.<br>
+      Type filter chips + search + fields table.
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="wire-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div
+          style="width:32px;height:32px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify:center;font-size:16px;">
+          &#9776;</div>
+        <strong style="font-size:18px;">ASCA</strong>
+        <span class="wire-badge">AI-based Smart Customs Agent</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="wire-btn">&#8681; Export</div>
+        <div class="wire-btn">&#8683; Import</div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="wire-body">
+      <div class="wire-sidebar">
+        <div class="wire-section-label">Features</div>
+        <div class="wire-nav active" style="margin-top:8px;">&#128455; Master Configs</div>
+        <div class="wire-nav">&#128193; Case Configs</div>
+      </div>
+
+      <div class="wire-main">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a>&#8592; Master Configs</a>
+          <span>&rsaquo;</span>
+          <span style="color:var(--muted);">master_field_registry</span>
+        </div>
+
+        <div class="wire-toolbar">
+          <div class="wire-toolbar-left">
+            <h2>master_field_registry — Fields</h2>
+            <p>Manage extractable fields</p>
+          </div>
+          <div class="wire-toolbar-right">
+            <div class="wire-chip active">All</div>
+            <div class="wire-chip">str</div>
+            <div class="wire-chip">date</div>
+            <div class="wire-chip">float</div>
+            <div class="wire-chip">int</div>
+            <div class="wire-chip">table</div>
+            <span style="margin:0 4px;color:#ccc;">|</span>
+            <div style="position:relative;">
+              <input class="wire-input" placeholder="Search..." style="width:140px;padding-left:28px;font-size:14px;">
+              <span
+                style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#999;font-size:14px;">&#128269;</span>
+            </div>
+            <div class="wire-btn primary">+ Add Field</div>
+          </div>
+        </div>
+
+        <table class="wire-table">
+          <thead>
+            <tr>
+              <th style="width:30px;">#</th>
+              <th>Key</th>
+              <th style="width:60px;">Type</th>
+              <th>Display Name</th>
+              <th>Description</th>
+              <th style="width:160px;">Document Types</th>
+              <th style="width:60px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><span class="key-mono">hbl_no</span></td>
+              <td><span class="wire-badge">str</span></td>
+              <td>HBL No</td>
+              <td class="wire-placeholder-text">House Bill of Lading...</td>
+              <td><span class="wire-badge">HOUSE_BL</span> <span class="wire-badge">DEBIT_NOTE</span></td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><span class="key-mono">shipper_name</span></td>
+              <td><span class="wire-badge">str</span></td>
+              <td>Shipper's Name</td>
+              <td class="wire-placeholder-text">Full legal or trading name...</td>
+              <td><span class="wire-badge">HOUSE_BL</span> <span class="wire-badge">PACKING_LIST</span></td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td><span class="key-mono">pieces</span></td>
+              <td><span class="wire-badge">int</span></td>
+              <td>No. of Pieces</td>
+              <td class="wire-placeholder-text">Total count of packages...</td>
+              <td><span class="wire-badge">HOUSE_BL</span> <span class="wire-badge">COMMERCIAL_...</span></td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td><span class="key-mono">invoice_no</span></td>
+              <td><span class="wire-badge">str</span></td>
+              <td>Invoice No.</td>
+              <td class="wire-placeholder-text">Alphanumeric reference...</td>
+              <td><span class="wire-badge">PACKING_LIST</span> <span class="wire-badge">COMMERCIAL_...</span></td>
+              <td style="text-align:center;">&#9998; &#128465;</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="text-align:center;margin-top:12px;color:var(--light);font-size:13px;">
+          ... Pagination ...
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 3: CASE CONFIGS TABLE                                 -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+    <div class="annotation" style="top:0;right:40px;">
+      Case configs with version tracking.<br>
+      Config Type: Extract / Verify / Integration.<br>
+      Duplicate creates a new version.
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="wire-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div
+          style="width:32px;height:32px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify:center;font-size:16px;">
+          &#9776;</div>
+        <strong style="font-size:18px;">ASCA</strong>
+        <span class="wire-badge">AI-based Smart Customs Agent</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="wire-btn">&#8681; Export</div>
+        <div class="wire-btn">&#8683; Import</div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="wire-body">
+      <div class="wire-sidebar">
+        <div class="wire-section-label">Features</div>
+        <div class="wire-nav" style="margin-top:8px;">&#128455; Master Configs</div>
+        <div class="wire-nav active">&#128193; Case Configs</div>
+      </div>
+
+      <div class="wire-main">
+        <div class="wire-toolbar">
+          <div class="wire-toolbar-left">
+            <h2>Case Configs</h2>
+            <p>Manage case configurations with versions</p>
+          </div>
+          <div class="wire-toolbar-right">
+            <div class="wire-btn primary">+ New Case Config</div>
+          </div>
+        </div>
+
+        <table class="wire-table">
+          <thead>
+            <tr>
+              <th style="width:50px;">ID</th>
+              <th>Case ID</th>
+              <th style="width:100px;">Config Type</th>
+              <th style="width:60px;">Version</th>
+              <th>Organization</th>
+              <th>Department</th>
+              <th style="width:110px;">Created On</th>
+              <th style="width:110px;">Modified On</th>
+              <th style="width:120px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable">
+              <td>1</td>
+              <td><span class="key-mono">AIR IPC</span></td>
+              <td><span class="wire-config-type extract">Extract</span></td>
+              <td class="wire-placeholder-text">v3</td>
+              <td>ABC Logistics</td>
+              <td>Operations</td>
+              <td class="wire-placeholder-text">2025-06-15</td>
+              <td class="wire-placeholder-text">2025-08-01</td>
+              <td style="text-align:center;">&#9998; &#128203; &#128465;</td>
+            </tr>
+            <tr class="clickable">
+              <td>2</td>
+              <td><span class="key-mono">SEA B/L VERIFY</span></td>
+              <td><span class="wire-config-type verify">Verify</span></td>
+              <td class="wire-placeholder-text">v1</td>
+              <td>ABC Logistics</td>
+              <td>Compliance</td>
+              <td class="wire-placeholder-text">2025-08-01</td>
+              <td class="wire-placeholder-text">2025-08-01</td>
+              <td style="text-align:center;">&#9998; &#128203; &#128465;</td>
+            </tr>
+            <tr class="clickable">
+              <td>3</td>
+              <td><span class="key-mono">AIR INTEGRATION</span></td>
+              <td><span class="wire-config-type integration">Integration</span></td>
+              <td class="wire-placeholder-text">v2</td>
+              <td>XYZ Corp</td>
+              <td>IT</td>
+              <td class="wire-placeholder-text">2025-07-10</td>
+              <td class="wire-placeholder-text">2025-08-05</td>
+              <td style="text-align:center;">&#9998; &#128203; &#128465;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 4: CASE CONFIG DETAIL (with Mandatory Fields embedded) -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+    <div class="annotation" style="top:0;right:20px;">
+      Case detail includes: General Settings,<br>
+      Field Overrides, Aggregation, and<br>
+      <strong>Mandatory Fields</strong> — all in one view.<br>
+      Save bumps the version number.
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="wire-topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div
+          style="width:32px;height:32px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify:center;font-size:16px;">
+          &#9776;</div>
+        <strong style="font-size:18px;">ASCA</strong>
+        <span class="wire-badge">AI-based Smart Customs Agent</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <div class="wire-btn">&#8681; Export</div>
+        <div class="wire-btn">&#8683; Import</div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="wire-body">
+      <div class="wire-sidebar">
+        <div class="wire-section-label">Features</div>
+        <div class="wire-nav" style="margin-top:8px;">&#128455; Master Configs</div>
+        <div class="wire-nav active">&#128193; Case Configs</div>
+      </div>
+
+      <div class="wire-main">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a>&#8592; Case Configs</a>
+          <span>&rsaquo;</span>
+          <span style="color:var(--muted);">AIR IPC (v3)</span>
+        </div>
+
+        <div class="wire-toolbar">
+          <div class="wire-toolbar-left">
+            <h2>AIR IPC</h2>
+            <p>Extract &middot; ABC Logistics &middot; Operations &middot; v3</p>
+          </div>
+          <div class="wire-toolbar-right">
+            <div class="wire-btn danger">&#128465; Delete</div>
+            <div class="wire-btn success">&#128190; Save</div>
+          </div>
+        </div>
+
+        <!-- General Settings -->
+        <div class="wire-collapse">
+          <div class="wire-collapse-header">
+            <span>General Settings</span>
+            <span style="color:var(--light);">&#9660;</span>
+          </div>
+          <div class="wire-collapse-body">
+            <div class="wire-grid-2" style="margin-bottom:10px;">
+              <div>
+                <span class="wire-label">Model Profile</span>
+                <input class="wire-input" value="vlm_qwen3_4b" readonly>
+              </div>
+              <div>
+                <span class="wire-label">Template</span>
+                <input class="wire-input" value="extract_with_bbox_image_index" readonly>
+              </div>
+            </div>
+            <div class="wire-grid-3" style="margin-bottom:10px;">
+              <div>
+                <span class="wire-label">Page Range</span>
+                <input class="wire-input" value="-" readonly>
+              </div>
+              <div>
+                <span class="wire-label">Table Model</span>
+                <input class="wire-input" value="vlm_qwen3_4b" readonly>
+              </div>
+              <div>
+                <span class="wire-label">Table Prompt</span>
+                <input class="wire-input" value="extract_table_json" readonly>
+              </div>
+            </div>
+            <div style="display:flex;gap:20px;">
+              <span><span class="wire-check checked"></span>Enable multi-page VLM</span>
+              <span><span class="wire-check checked"></span>Inherit fields from master config</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Field Overrides -->
+        <div class="wire-collapse">
+          <div class="wire-collapse-header">
+            <span>Field Overrides <span class="wire-placeholder-text">(3 overrides)</span></span>
+            <span style="color:var(--light);">&#9660;</span>
+          </div>
+          <div class="wire-collapse-body">
+            <table class="wire-table" style="margin-bottom:10px;">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Display Name</th>
+                  <th>Prompt Description</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="key-mono">pieces</span></td>
+                  <td class="wire-placeholder-text">same as master</td>
+                  <td class="wire-placeholder-text">Total count of packages...</td>
+                  <td style="text-align:center;">&#10005;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">airport_dest</span></td>
+                  <td>Airport of Destination</td>
+                  <td class="wire-placeholder-text">IATA code of arrival...</td>
+                  <td style="text-align:center;">&#10005;</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select class="wire-select" style="width:160px;">
+                <option>&mdash; Choose field &mdash;</option>
+              </select>
+              <div class="wire-btn" style="padding:4px 12px;font-size:14px;">+ Add</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aggregation -->
+        <div class="wire-collapse">
+          <div class="wire-collapse-header">
+            <span>Aggregation <span class="wire-placeholder-text">(8 fields)</span></span>
+            <span style="color:var(--light);">&#9660;</span>
+          </div>
+          <div class="wire-collapse-body">
+            <table class="wire-table" style="margin-bottom:10px;">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Operation</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="key-mono">quantity</span></td>
+                  <td><select class="wire-select" style="width:90px;font-size:13px;">
+                      <option>sum</option>
+                    </select></td>
+                  <td style="text-align:center;">&#10005;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">invoice_no</span></td>
+                  <td><select class="wire-select" style="width:90px;font-size:13px;">
+                      <option>concat</option>
+                    </select></td>
+                  <td style="text-align:center;">&#10005;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">shipper_name</span></td>
+                  <td><select class="wire-select" style="width:90px;font-size:13px;">
+                      <option>first</option>
+                    </select></td>
+                  <td style="text-align:center;">&#10005;</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select class="wire-select" style="width:160px;">
+                <option>&mdash; Choose field &mdash;</option>
+              </select>
+              <select class="wire-select" style="width:80px;font-size:13px;">
+                <option>first</option>
+              </select>
+              <div class="wire-btn" style="padding:4px 12px;font-size:14px;">+ Add</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MANDATORY FIELDS (embedded, highlighted) -->
+        <div class="wire-mandatory-section">
+          <div class="wire-mandatory-header">
+            <span>&#9882; Mandatory Fields <span class="wire-placeholder-text" style="color:#9a8a00;">(12
+                fields)</span></span>
+            <span style="color:#9a8a00;">&#9660;</span>
+          </div>
+          <div class="wire-mandatory-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+              <p class="wire-placeholder-text">Fields required for this case's document types.</p>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <select class="wire-select" style="width:160px;">
+                  <option>&mdash; Choose field &mdash;</option>
+                </select>
+                <div class="wire-btn primary" style="padding:4px 12px;font-size:14px;">+ Add</div>
+              </div>
+            </div>
+            <table class="wire-table">
+              <thead>
+                <tr>
+                  <th>Field Key</th>
+                  <th style="width:90px;">Severity</th>
+                  <th>Required In</th>
+                  <th style="width:60px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="key-mono">hbl_no</span></td>
+                  <td>
+                    <select class="wire-select" style="width:80px;font-size:13px;color:var(--danger);">
+                      <option>ERROR</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span class="wire-badge">HOUSE_BL</span>
+                    <span class="wire-badge">DEBIT_NOTE</span>
+                    <span class="wire-badge">COMMERCIAL_...</span>
+                  </td>
+                  <td style="text-align:center;">&#9998; &#128465;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">pieces</span></td>
+                  <td>
+                    <select class="wire-select" style="width:80px;font-size:13px;color:var(--danger);">
+                      <option>ERROR</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span class="wire-badge">DEBIT_NOTE</span>
+                    <span class="wire-badge">HOUSE_BL</span>
+                    <span class="wire-badge">PACKING_LIST</span>
+                  </td>
+                  <td style="text-align:center;">&#9998; &#128465;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">invoice_no</span></td>
+                  <td>
+                    <select class="wire-select" style="width:80px;font-size:13px;color:var(--danger);">
+                      <option>ERROR</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span class="wire-badge">COMMERCIAL_...</span>
+                  </td>
+                  <td style="text-align:center;">&#9998; &#128465;</td>
+                </tr>
+                <tr>
+                  <td><span class="key-mono">airport_dest</span></td>
+                  <td>
+                    <select class="wire-select" style="width:80px;font-size:13px;color:var(--danger);">
+                      <option>ERROR</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span class="wire-badge">HOUSE_BL</span>
+                    <span class="wire-badge">DEBIT_NOTE</span>
+                    <span class="wire-badge">COMMERCIAL_...</span>
+                  </td>
+                  <td style="text-align:center;">&#9998; &#128465;</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="text-align:center;margin-top:8px;color:var(--light);font-size:12px;">
+              ... Pagination ...
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 5: ADD FIELD MODAL                                    -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+
+    <div
+      style="background:var(--surface);border:2px solid var(--border);border-radius:3px 255px 3px 255px / 255px 3px 255px 3px;width:560px;max-width:90%;box-shadow:4px 6px 0 rgba(0,0,0,.15);">
+
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--border);background:#e8e8e3;">
+        <strong style="font-size:17px;">Add Field</strong>
+        <span style="font-size:18px;color:var(--light);">&#10005;</span>
+      </div>
+
+      <div style="padding:16px;">
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <div>
+            <span class="wire-label">Field Key *</span>
+            <input class="wire-input" placeholder="e.g. invoice_no">
+          </div>
+          <div>
+            <span class="wire-label">Display Name</span>
+            <input class="wire-input" placeholder="e.g. Invoice No.">
+          </div>
+        </div>
+
+        <div class="wire-grid-3" style="margin-bottom:10px;">
+          <div>
+            <span class="wire-label">Type *</span>
+            <select class="wire-select">
+              <option>string</option>
+              <option>date</option>
+              <option>float</option>
+              <option>integer</option>
+              <option>table</option>
+            </select>
+          </div>
+          <div>
+            <span class="wire-label">Order</span>
+            <input class="wire-input" placeholder="e.g. 10">
+          </div>
+          <div>
+            <span class="wire-label">Normalizer</span>
+            <input class="wire-input" placeholder="e.g. date">
+          </div>
+        </div>
+
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <div>
+            <span class="wire-label">Parser</span>
+            <input class="wire-input" placeholder="e.g. extract_integer">
+          </div>
+          <div>
+            <span class="wire-label">SIDP Name</span>
+            <input class="wire-input" placeholder="e.g. seller_name">
+          </div>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <span class="wire-label">Description</span>
+          <input class="wire-input" placeholder="Brief description...">
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <span class="wire-label">Prompt Description</span>
+          <textarea class="wire-input" rows="2" placeholder="Description for AI prompt..."
+            style="resize:vertical;"></textarea>
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <span class="wire-label">Verify Strategies (comma-separated)</span>
+          <input class="wire-input" placeholder="e.g. common_string">
+        </div>
+
+        <div>
+          <span class="wire-label">Document Types</span>
+          <div style="border:2px solid #ccc;border-radius:3px;padding:10px;background:#fafaf5;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <span><span class="wire-check"></span> HOUSE_BL</span>
+              <span><span class="wire-check checked"></span> PACKING_LIST</span>
+              <span><span class="wire-check checked"></span> COMMERCIAL_INVOICE</span>
+              <span><span class="wire-check"></span> DEBIT_NOTE</span>
+              <span><span class="wire-check"></span> FOREIGN_CONTRACT</span>
+              <span><span class="wire-check checked"></span> VENDOR_PACKING_LIST</span>
+            </div>
+            <div style="margin-top:8px;padding-top:8px;border-top:1.5px dashed #ccc;">
+              <input class="wire-input" placeholder="+ Add new doc type..." style="font-size:13px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:2px solid var(--border);">
+        <div class="wire-btn">Cancel</div>
+        <div class="wire-btn primary">Save</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <!-- VIEW 6: NEW CASE CONFIG MODAL                              -->
+  <!-- ════════════════════════════════════════════════════════════ -->
+  <div class="wireframe-page">
+
+
+    <div
+      style="background:var(--surface);border:2px solid var(--border);border-radius:3px 255px 3px 255px / 255px 3px 255px 3px;width:480px;box-shadow:4px 6px 0 rgba(0,0,0,.15);">
+
+      <div
+        style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--border);background:#e8e8e3;">
+        <strong style="font-size:17px;">New Case Config</strong>
+        <span style="font-size:18px;color:var(--light);">&#10005;</span>
+      </div>
+
+      <div style="padding:16px;">
+        <div class="wire-grid-2" style="margin-bottom:10px;">
+          <div>
+            <span class="wire-label">Case ID *</span>
+            <input class="wire-input" placeholder="e.g. AIR IPC">
+          </div>
+          <div>
+            <span class="wire-label">Config Type *</span>
+            <select class="wire-select">
+              <option>Extract</option>
+              <option>Verify</option>
+              <option>Integration</option>
+            </select>
+          </div>
+        </div>
+        <div class="wire-grid-2">
+          <div>
+            <span class="wire-label">Organization</span>
+            <input class="wire-input" placeholder="e.g. ABC Logistics">
+          </div>
+          <div>
+            <span class="wire-label">Department</span>
+            <input class="wire-input" placeholder="e.g. Operations">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:2px solid var(--border);">
+        <div class="wire-btn">Cancel</div>
+        <div class="wire-btn primary">Create</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- LEGEND -->
+  <div style="max-width:1200px;margin:0 auto;padding:24px 0 0;border-top:3px solid var(--border);">
+    <p style="font-size:14px;color:var(--light);text-align:center;">
+      Wireframe — Config Manager v2.0 &nbsp;|&nbsp;
+      6 views: Master Configs Table | Master Detail (Fields) | Case Configs Table | Case Detail (with Mandatory) | Add
+      Field Modal | New Case Modal &nbsp;|&nbsp;
+      Sketchy style inspired by Balsamiq
+    </p>
+  </div>
+
+</body>
+
+</html>

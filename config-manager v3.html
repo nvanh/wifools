@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Config Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+      colors: {
+        bg: '#0F1117', surface: '#1A1D27', card: '#252836', border: '#2E3347',
+        muted: '#94A3B8', primary: '#3B82F6', success: '#10B981', danger: '#EF4444', warn: '#F59E0B',
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #0F1117; color: #F8FAFC; font-family: 'Inter', sans-serif; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: #1A1D27; }
+  ::-webkit-scrollbar-thumb { background: #2E3347; border-radius: 4px; }
+
+  .type-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: .03em; }
+  .type-string   { background: #1E3A5F; color: #60A5FA; }
+  .type-date     { background: #2D1B6B; color: #A78BFA; }
+  .type-float    { background: #3D2600; color: #FCD34D; }
+  .type-integer  { background: #064E3B; color: #34D399; }
+  .type-table    { background: #4A1942; color: #F472B6; }
+
+  .nav-item { transition: all .15s; cursor: pointer; border-left: 2px solid transparent; }
+  .nav-item:hover { background: #252836; border-left-color: #4B5563; }
+  .nav-item.active { background: #1e2236; border-left-color: #3B82F6; color: #F8FAFC; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .modal-box { background: #1A1D27; border: 1px solid #2E3347; border-radius: 12px; width: 680px; max-width: 95vw; max-height: 88vh; overflow: hidden; display: flex; flex-direction: column; }
+  .modal-body { overflow-y: auto; padding: 20px 24px; flex: 1; }
+
+  input, select, textarea {
+    background: #0F1117; border: 1px solid #2E3347; color: #F8FAFC;
+    border-radius: 6px; padding: 7px 10px; font-size: 13px; width: 100%;
+    font-family: inherit; transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #3B82F6; }
+  input::placeholder, textarea::placeholder { color: #4B5563; }
+  label { font-size: 12px; color: #94A3B8; font-weight: 500; margin-bottom: 4px; display: block; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border: none; }
+  .btn-primary { background: #3B82F6; color: #fff; }
+  .btn-primary:hover { background: #2563EB; }
+  .btn-danger { background: #7f1d1d; color: #FCA5A5; }
+  .btn-danger:hover { background: #EF4444; color: #fff; }
+  .btn-ghost { background: transparent; color: #94A3B8; border: 1px solid #2E3347; }
+  .btn-ghost:hover { background: #252836; color: #F8FAFC; }
+  .btn-success { background: #064E3B; color: #34D399; }
+  .btn-success:hover { background: #10B981; color: #fff; }
+
+  .severity-ERROR { color: #EF4444; }
+  .severity-WARN  { color: #F59E0B; }
+
+  .agg-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: #1e2236; color: #94A3B8; padding: 2px 6px; border-radius: 3px; border: 1px solid #2E3347; white-space: nowrap; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; z-index: 200; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; animation: slideUp .2s ease; }
+  .toast-success { background: #064E3B; color: #34D399; border: 1px solid #10B981; }
+  .toast-danger  { background: #7f1d1d; color: #FCA5A5; border: 1px solid #EF4444; }
+  @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #4B5563; text-transform: uppercase; padding: 12px 0 4px; }
+
+  .case-section { border: 1px solid #2E3347; border-radius: 8px; }
+  .case-header { background: #252836; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; border-radius: 8px; }
+  .case-header.open { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: 1px solid #2E3347; }
+  .case-body { padding: 14px; background: #1A1D27; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+  .key-mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #60A5FA; }
+  .chevron { transition: transform .2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* TABLE STYLES */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table thead th {
+    background: #252836; color: #94A3B8; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; padding: 8px 12px;
+    text-align: left; border-bottom: 1px solid #2E3347; position: sticky; top: 0; z-index: 5;
+  }
+  .data-table tbody tr { transition: background .1s; cursor: pointer; }
+  .data-table tbody tr:hover { background: #1e2236; }
+  .data-table tbody td { padding: 8px 12px; border-bottom: 1px solid #2E3347; vertical-align: middle; }
+  .data-table .actions { display: flex; gap: 4px; }
+
+  .filter-chip { font-size: 11px; padding: 3px 10px; border-radius: 12px; cursor: pointer; transition: all .15s; border: 1px solid #2E3347; background: transparent; color: #94A3B8; }
+  .filter-chip:hover { border-color: #3B82F6; color: #60A5FA; }
+  .filter-chip.active { background: #1d3461; color: #60A5FA; border-color: #3B82F6; }
+
+  .config-type-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+  .config-type-extract { background: #1E3A5F; color: #60A5FA; }
+  .config-type-verify { background: #2D1B6B; color: #A78BFA; }
+  .config-type-integration { background: #064E3B; color: #34D399; }
+
+  .breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #94A3B8; margin-bottom: 8px; }
+  .breadcrumb a { color: #60A5FA; cursor: pointer; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb span { color: #4B5563; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- TOP BAR -->
+<div class="flex items-center justify-between px-6 py-3 border-b" style="background:#1A1D27;border-color:#2E3347;">
+  <div class="flex items-center gap-3">
+    <div class="w-7 h-7 rounded-lg flex items-center justify-center" style="background:#1d3461;">
+      <i class="fa-solid fa-layer-group text-primary" style="font-size:13px;"></i>
+    </div>
+    <span class="font-semibold text-sm tracking-tight">Config Manager</span>
+    <span class="text-xs px-2 py-0.5 rounded" style="background:#252836;color:#94A3B8;">v2.0</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <button class="btn btn-ghost text-xs" onclick="exportAll()"><i class="fa-solid fa-download"></i> Export</button>
+    <button class="btn btn-ghost text-xs" onclick="importAll()"><i class="fa-solid fa-upload"></i> Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)" />
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="flex" style="height:calc(100vh - 49px);">
+
+  <!-- LEFT SIDEBAR — Feature Navigation -->
+  <div class="flex flex-col border-r" style="width:220px;background:#1A1D27;border-color:#2E3347;flex-shrink:0;">
+    <div class="flex-1 overflow-y-auto px-2 py-3">
+      <div class="section-label px-2">Features</div>
+      <div class="flex flex-col gap-0.5 mt-1" id="featureMenu">
+        <div class="nav-item active flex items-center gap-3 px-3 py-2 rounded-md text-xs" data-feature="master-configs" onclick="switchFeature('master-configs')">
+          <i class="fa-solid fa-database" style="width:16px;text-align:center;font-size:12px;"></i> Master Configs
+        </div>
+        <div class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-xs text-muted" data-feature="case-configs" onclick="switchFeature('case-configs')">
+          <i class="fa-solid fa-folder-open" style="width:16px;text-align:center;font-size:12px;"></i> Case Configs
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 overflow-y-auto" id="mainContent">
+
+    <!-- MASTER CONFIGS LIST VIEW -->
+    <div id="view-master-list">
+      <div class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style="background:#0F1117;border-color:#2E3347;">
+        <div>
+          <h1 class="text-sm font-semibold">Master Configs</h1>
+          <p class="text-xs text-muted mt-0.5">Manage field registries and definitions</p>
+        </div>
+        <button class="btn btn-primary text-xs" onclick="openAddMasterConfig()"><i class="fa-solid fa-plus"></i> New Master Config</button>
+      </div>
+      <div class="px-6 py-4" id="masterConfigTable"></div>
+    </div>
+
+    <!-- MASTER CONFIG DETAIL — Fields -->
+    <div id="view-master-detail" class="hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style="background:#0F1117;border-color:#2E3347;">
+        <div>
+          <div class="breadcrumb">
+            <a onclick="switchFeature('master-configs')">Master Configs</a>
+            <span>&rsaquo;</span>
+            <span id="masterDetailBreadcrumb" class="text-white/80"></span>
+          </div>
+          <h1 class="text-sm font-semibold" id="masterDetailTitle">Fields</h1>
+          <p class="text-xs text-muted mt-0.5">Manage extractable fields</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex gap-1">
+            <button class="filter-chip active" data-type="all" onclick="filterMasterFields('all')">All</button>
+            <button class="filter-chip" data-type="string" onclick="filterMasterFields('string')">str</button>
+            <button class="filter-chip" data-type="date" onclick="filterMasterFields('date')">date</button>
+            <button class="filter-chip" data-type="float" onclick="filterMasterFields('float')">float</button>
+            <button class="filter-chip" data-type="integer" onclick="filterMasterFields('integer')">int</button>
+            <button class="filter-chip" data-type="table" onclick="filterMasterFields('table')">table</button>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted" style="font-size:11px;"></i>
+            <input type="text" placeholder="Search…" id="fieldSearch" oninput="renderMasterFieldsTable()" class="pl-7 pr-3 py-1.5 text-xs rounded-lg" style="width:160px;background:#1A1D27;border:1px solid #2E3347;" />
+          </div>
+          <button class="btn btn-primary text-xs" onclick="openAddField()"><i class="fa-solid fa-plus"></i> Add Field</button>
+        </div>
+      </div>
+      <div id="masterFieldsTable" class="px-6 py-4"></div>
+    </div>
+
+    <!-- CASE CONFIGS LIST VIEW -->
+    <div id="view-case-list" class="hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style="background:#0F1117;border-color:#2E3347;">
+        <div>
+          <h1 class="text-sm font-semibold">Case Configs</h1>
+          <p class="text-xs text-muted mt-0.5">Manage case configurations with versions</p>
+        </div>
+        <button class="btn btn-primary text-xs" onclick="openAddCaseConfig()"><i class="fa-solid fa-plus"></i> New Case Config</button>
+      </div>
+      <div class="px-6 py-4" id="caseConfigTable"></div>
+    </div>
+
+    <!-- CASE CONFIG DETAIL -->
+    <div id="view-case-detail" class="hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10" style="background:#0F1117;border-color:#2E3347;">
+        <div>
+          <div class="breadcrumb">
+            <a onclick="switchFeature('case-configs')">Case Configs</a>
+            <span>&rsaquo;</span>
+            <span id="caseDetailBreadcrumb" class="text-white/80"></span>
+          </div>
+          <h1 class="text-sm font-semibold" id="caseDetailTitle">Case Detail</h1>
+          <p class="text-xs text-muted mt-0.5" id="caseDetailSubtitle"></p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-danger text-xs" onclick="deleteCaseConfig()"><i class="fa-solid fa-trash"></i> Delete</button>
+          <button class="btn btn-success text-xs" onclick="saveCaseDetail()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+        </div>
+      </div>
+      <div class="px-6 py-5" id="caseDetailEditor"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal-overlay hidden" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color:#2E3347;">
+      <h2 class="text-sm font-semibold" id="modalTitle">Add</h2>
+      <button onclick="closeModal()" class="text-muted hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="flex justify-end gap-2 px-6 py-3 border-t" style="border-color:#2E3347;">
+      <button class="btn btn-ghost text-xs" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary text-xs" id="modalConfirm" onclick="confirmModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast toast-success hidden"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════════════════
+let masterConfigs = [];
+let caseConfigs = [];
+let currentFeature = 'master-configs';
+let currentMasterId = null;
+let currentCaseId = null;
+let activeTypeFilter = 'all';
+let modalCallback = null;
+
+let _masterSeq = 0;
+let _caseSeq = 0;
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+window.onload = () => {
+  loadSampleData();
+  renderCurrentView();
+};
+
+function loadSampleData() {
+  const now = new Date().toISOString().slice(0, 10);
+  const prev = '2025-06-15';
+
+  masterConfigs = [
+    {
+      id: 1, key: 'master_field_registry', entries: 30,
+      createdOn: prev, modifiedOn: now,
+      fields: SAMPLE_MASTER
+    },
+    {
+      id: 2, key: 'sea_freight_fields', entries: 12,
+      createdOn: '2025-07-01', modifiedOn: '2025-07-20',
+      fields: {
+        vessel_name: { type: 'string', order: 1, display_name: 'Vessel Name', description: 'Name of the cargo vessel.', document_types: ['BILL_OF_LADING'], verify_strategies: ['common_string'], prompt_description: 'Name of the cargo vessel.', normalizer: null, parser: null, post_process: null, example: '' },
+        container_no: { type: 'string', order: 2, display_name: 'Container No', description: 'Container identification number.', document_types: ['BILL_OF_LADING'], verify_strategies: ['common_string'], prompt_description: 'Container identification number.', normalizer: 'alphanumeric', parser: null, post_process: null, example: '' },
+        seal_no: { type: 'string', order: 3, display_name: 'Seal No', description: 'Seal number on container.', document_types: ['BILL_OF_LADING'], verify_strategies: ['common_string'], prompt_description: 'Seal number on container.', normalizer: null, parser: null, post_process: null, example: '' },
+      }
+    }
+  ];
+  _masterSeq = 2;
+
+  caseConfigs = [
+    {
+      id: 1, caseId: 'AIR IPC', configType: 'Extract', version: 3,
+      organization: 'ABC Logistics', department: 'Operations',
+      createdOn: prev, modifiedOn: now,
+      documents: SAMPLE_CASE.documents,
+      mandatoryFields: SAMPLE_CASE.mandatory_fields
+    },
+    {
+      id: 2, caseId: 'SEA B/L Verify', configType: 'Verify', version: 1,
+      organization: 'ABC Logistics', department: 'Compliance',
+      createdOn: '2025-08-01', modifiedOn: '2025-08-01',
+      documents: {},
+      mandatoryFields: {}
+    },
+    {
+      id: 3, caseId: 'AIR Integration', configType: 'Integration', version: 2,
+      organization: 'XYZ Corp', department: 'IT',
+      createdOn: '2025-07-10', modifiedOn: '2025-08-05',
+      documents: {},
+      mandatoryFields: {}
+    }
+  ];
+  _caseSeq = 3;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE NAVIGATION
+// ════════════════════════════════════════════════════════════════
+function switchFeature(feature) {
+  currentFeature = feature;
+  document.querySelectorAll('#featureMenu .nav-item').forEach(el => {
+    const isActive = el.dataset.feature === feature;
+    el.classList.toggle('active', isActive);
+    el.classList.toggle('text-muted', !isActive);
+  });
+
+  document.getElementById('view-master-list').classList.toggle('hidden', feature !== 'master-configs');
+  document.getElementById('view-master-detail').classList.toggle('hidden', true);
+  document.getElementById('view-case-list').classList.toggle('hidden', feature !== 'case-configs');
+  document.getElementById('view-case-detail').classList.toggle('hidden', true);
+
+  renderCurrentView();
+}
+
+function renderCurrentView() {
+  if (currentFeature === 'master-configs') renderMasterConfigTable();
+  else if (currentFeature === 'case-configs') renderCaseConfigTable();
+}
+
+// ════════════════════════════════════════════════════════════════
+// MASTER CONFIG TABLE
+// ════════════════════════════════════════════════════════════════
+function renderMasterConfigTable() {
+  const container = document.getElementById('masterConfigTable');
+  if (!masterConfigs.length) {
+    container.innerHTML = '<div class="text-center py-16 text-muted text-sm">No master configs. Create one to get started.</div>';
+    return;
+  }
+  container.innerHTML = `
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:50px;">ID</th>
+        <th>Key</th>
+        <th style="width:80px;">Entries</th>
+        <th style="width:110px;">Created On</th>
+        <th style="width:110px;">Modified On</th>
+        <th style="width:100px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${masterConfigs.map(mc => `
+      <tr onclick="openMasterDetail(${mc.id})">
+        <td class="text-muted text-xs">${mc.id}</td>
+        <td><span class="key-mono">${mc.key}</span></td>
+        <td><span class="agg-tag">${mc.entries}</span></td>
+        <td class="text-xs text-muted">${mc.createdOn}</td>
+        <td class="text-xs text-muted">${mc.modifiedOn}</td>
+        <td>
+          <div class="actions" onclick="event.stopPropagation()">
+            <button class="btn btn-ghost text-xs px-2" onclick="openEditMasterConfig(${mc.id})" title="Edit"><i class="fa-solid fa-pen" style="font-size:11px;"></i></button>
+            <button class="btn btn-danger text-xs px-2" onclick="deleteMasterConfig(${mc.id})" title="Delete"><i class="fa-solid fa-trash" style="font-size:11px;"></i></button>
+          </div>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function openMasterDetail(id) {
+  currentMasterId = id;
+  activeTypeFilter = 'all';
+  document.getElementById('view-master-list').classList.add('hidden');
+  document.getElementById('view-master-detail').classList.remove('hidden');
+  const mc = masterConfigs.find(m => m.id === id);
+  document.getElementById('masterDetailBreadcrumb').textContent = mc.key;
+  document.getElementById('masterDetailTitle').textContent = mc.key + ' — Fields';
+  renderMasterFieldsTable();
+}
+
+// ════════════════════════════════════════════════════════════════
+// MASTER FIELDS TABLE
+// ════════════════════════════════════════════════════════════════
+function renderMasterFieldsTable() {
+  const mc = masterConfigs.find(m => m.id === currentMasterId);
+  if (!mc) return;
+  const search = (document.getElementById('fieldSearch')?.value || '').toLowerCase();
+  const entries = Object.entries(mc.fields || {}).filter(([k, v]) => {
+    if (activeTypeFilter !== 'all' && v.type !== activeTypeFilter) return false;
+    if (search && !k.includes(search) && !(v.display_name || '').toLowerCase().includes(search)) return false;
+    return true;
+  }).sort((a, b) => (a[1].order || 999) - (b[1].order || 999));
+
+  const container = document.getElementById('masterFieldsTable');
+  if (!entries.length) {
+    container.innerHTML = '<div class="text-center py-16 text-muted text-sm">No fields found.</div>';
+    return;
+  }
+  container.innerHTML = `
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:40px;">#</th>
+        <th>Key</th>
+        <th style="width:70px;">Type</th>
+        <th>Display Name</th>
+        <th>Description</th>
+        <th style="width:180px;">Document Types</th>
+        <th style="width:80px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${entries.map(([key, f]) => `
+      <tr>
+        <td class="text-muted text-xs">${f.order !== undefined ? f.order : '—'}</td>
+        <td><span class="key-mono">${key}</span></td>
+        <td>${typeBadge(f.type)}</td>
+        <td class="text-sm">${f.display_name || '—'}</td>
+        <td class="text-xs text-muted max-w-xs truncate" title="${(f.description||'').replace(/"/g,'&quot;')}">${f.description || ''}</td>
+        <td><div class="flex flex-wrap gap-1">${(f.document_types||[]).map(d=>`<span class="agg-tag">${d}</span>`).join('')}</div></td>
+        <td>
+          <div class="actions">
+            <button class="btn btn-ghost text-xs px-2" onclick="openEditField('${key}')" title="Edit"><i class="fa-solid fa-pen" style="font-size:11px;"></i></button>
+            <button class="btn btn-danger text-xs px-2" onclick="deleteField('${key}')" title="Delete"><i class="fa-solid fa-trash" style="font-size:11px;"></i></button>
+          </div>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function filterMasterFields(t) {
+  activeTypeFilter = t;
+  document.querySelectorAll('#view-master-detail .filter-chip').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+  renderMasterFieldsTable();
+}
+
+function typeBadge(type) {
+  return `<span class="type-badge type-${type}">${type}</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// MASTER CONFIG CRUD
+// ════════════════════════════════════════════════════════════════
+function openAddMasterConfig() {
+  modalCallback = (data) => {
+    const key = data.key.trim().toLowerCase().replace(/\s+/g, '_');
+    if (masterConfigs.find(m => m.key === key)) { showToast('Key already exists!', 'danger'); return false; }
+    _masterSeq++;
+    masterConfigs.push({
+      id: _masterSeq, key, entries: 0,
+      createdOn: new Date().toISOString().slice(0, 10),
+      modifiedOn: new Date().toISOString().slice(0, 10),
+      fields: {}
+    });
+    renderMasterConfigTable();
+    showToast('Master config created');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'New Master Config';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="flex flex-col gap-4">
+      <div><label>Key *</label><input id="mc-key" placeholder="e.g. master_field_registry" /></div>
+      <p class="text-xs text-muted">Creates an empty master config. Add fields after creation.</p>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function openEditMasterConfig(id) {
+  const mc = masterConfigs.find(m => m.id === id);
+  modalCallback = (data) => {
+    const newKey = data.key.trim().toLowerCase().replace(/\s+/g, '_');
+    if (newKey !== mc.key && masterConfigs.find(m => m.key === newKey)) { showToast('Key already exists!', 'danger'); return false; }
+    mc.key = newKey;
+    mc.modifiedOn = new Date().toISOString().slice(0, 10);
+    renderMasterConfigTable();
+    showToast('Updated');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'Edit Master Config';
+  document.getElementById('modalBody').innerHTML = `
+    <div><label>Key *</label><input id="mc-key" value="${mc.key}" /></div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function deleteMasterConfig(id) {
+  const mc = masterConfigs.find(m => m.id === id);
+  if (!confirm(`Delete "${mc.key}" and all its fields?`)) return;
+  masterConfigs = masterConfigs.filter(m => m.id !== id);
+  if (currentMasterId === id) switchFeature('master-configs');
+  renderMasterConfigTable();
+  showToast('Deleted', 'danger');
+}
+
+// ════════════════════════════════════════════════════════════════
+// FIELD CRUD
+// ════════════════════════════════════════════════════════════════
+function getCurrentMaster() { return masterConfigs.find(m => m.id === currentMasterId); }
+
+function openAddField() {
+  modalCallback = (data) => {
+    const mc = getCurrentMaster();
+    if (mc.fields[data.key]) { showToast('Field key already exists!', 'danger'); return false; }
+    mc.fields[data.key] = buildFieldFromForm(data);
+    mc.entries = Object.keys(mc.fields).length;
+    mc.modifiedOn = new Date().toISOString().slice(0, 10);
+    renderMasterFieldsTable();
+    showToast('Field added');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'Add Field';
+  document.getElementById('modalBody').innerHTML = fieldForm();
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function openEditField(key) {
+  const mc = getCurrentMaster();
+  const f = mc.fields[key];
+  modalCallback = (data) => {
+    if (data.key !== key && mc.fields[data.key]) { showToast('Key already exists!', 'danger'); return false; }
+    delete mc.fields[key];
+    mc.fields[data.key] = buildFieldFromForm(data);
+    mc.modifiedOn = new Date().toISOString().slice(0, 10);
+    renderMasterFieldsTable();
+    showToast('Field updated');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'Edit — ' + key;
+  document.getElementById('modalBody').innerHTML = fieldForm(key, f);
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function deleteField(key) {
+  if (!confirm(`Delete field "${key}"?`)) return;
+  const mc = getCurrentMaster();
+  delete mc.fields[key];
+  mc.entries = Object.keys(mc.fields).length;
+  mc.modifiedOn = new Date().toISOString().slice(0, 10);
+  renderMasterFieldsTable();
+  showToast('Field deleted', 'danger');
+}
+
+function getAllDocTypes() {
+  const mc = getCurrentMaster();
+  const types = new Set();
+  Object.values(mc.fields || {}).forEach(f => (f.document_types || []).forEach(t => types.add(t)));
+  return [...types].sort();
+}
+
+function buildFieldFromForm(data) {
+  const obj = {
+    type: data.type, display_name: data.display_name, description: data.description,
+    prompt_description: data.prompt_description, document_types: data.document_types,
+    verify_strategies: data.verify_strategies ? data.verify_strategies.split(',').map(s=>s.trim()).filter(Boolean) : [],
+    normalizer: data.normalizer || null, parser: data.parser || null, post_process: null,
+    example: data.example !== undefined ? data.example : '',
+  };
+  if (data.order) obj.order = parseInt(data.order);
+  if (data.sidp_name) obj.sidp_name = data.sidp_name;
+  return obj;
+}
+
+function fieldForm(key = '', f = {}) {
+  const allDocTypes = getAllDocTypes();
+  const selectedDocs = f.document_types || [];
+  const docsHtml = allDocTypes.map(d => `
+    <label class="flex items-center gap-2 text-xs cursor-pointer">
+      <input type="checkbox" value="${d}" ${selectedDocs.includes(d)?'checked':''} class="doc-type-check accent-blue-500" />
+      <span>${d}</span>
+    </label>`).join('');
+  return `
+  <div class="flex flex-col gap-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Field Key *</label><input id="ff-key" value="${key}" placeholder="e.g. invoice_no" ${key?'readonly':''} /></div>
+      <div><label>Display Name</label><input id="ff-display" value="${f.display_name||''}" placeholder="e.g. Invoice No." /></div>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div><label>Type *</label>
+        <select id="ff-type">${['string','date','float','integer','table'].map(t=>`<option value="${t}" ${f.type===t?'selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <div><label>Order</label><input id="ff-order" type="number" value="${f.order||''}" placeholder="e.g. 10" /></div>
+      <div><label>Normalizer</label><input id="ff-normalizer" value="${f.normalizer||''}" placeholder="e.g. date, float" /></div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Parser</label><input id="ff-parser" value="${f.parser||''}" placeholder="e.g. extract_integer" /></div>
+      <div><label>SIDP Name</label><input id="ff-sidp" value="${f.sidp_name||''}" placeholder="e.g. seller_name" /></div>
+    </div>
+    <div><label>Description</label><input id="ff-desc" value="${f.description||''}" /></div>
+    <div><label>Prompt Description</label><textarea id="ff-prompt" rows="2">${f.prompt_description||''}</textarea></div>
+    <div><label>Verify Strategies (comma-separated)</label><input id="ff-verify" value="${(f.verify_strategies||[]).join(', ')}" placeholder="e.g. common_string" /></div>
+    <div>
+      <label>Document Types</label>
+      <div class="grid grid-cols-2 gap-1.5 mt-1 p-3 rounded-lg" style="background:#0F1117;border:1px solid #2E3347;">
+        ${docsHtml}
+        <div class="col-span-2 mt-1 pt-2 border-t" style="border-color:#2E3347;">
+          <input id="ff-newdoctype" placeholder="Add new doc type…" class="text-xs" />
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function collectFieldForm() {
+  const checked = [...document.querySelectorAll('.doc-type-check:checked')].map(c=>c.value);
+  const newdt = document.getElementById('ff-newdoctype')?.value.trim();
+  if (newdt) checked.push(newdt);
+  return {
+    key: document.getElementById('ff-key').value.trim(),
+    type: document.getElementById('ff-type').value,
+    display_name: document.getElementById('ff-display').value.trim(),
+    description: document.getElementById('ff-desc').value.trim(),
+    prompt_description: document.getElementById('ff-prompt').value.trim(),
+    order: document.getElementById('ff-order').value.trim(),
+    normalizer: document.getElementById('ff-normalizer').value.trim(),
+    parser: document.getElementById('ff-parser').value.trim(),
+    sidp_name: document.getElementById('ff-sidp').value.trim(),
+    verify_strategies: document.getElementById('ff-verify').value.trim(),
+    document_types: checked,
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+// CASE CONFIG TABLE
+// ════════════════════════════════════════════════════════════════
+function renderCaseConfigTable() {
+  const container = document.getElementById('caseConfigTable');
+  if (!caseConfigs.length) {
+    container.innerHTML = '<div class="text-center py-16 text-muted text-sm">No case configs. Create one to get started.</div>';
+    return;
+  }
+  container.innerHTML = `
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:50px;">ID</th>
+        <th>Case ID</th>
+        <th style="width:100px;">Config Type</th>
+        <th style="width:60px;">Version</th>
+        <th>Organization</th>
+        <th>Department</th>
+        <th style="width:110px;">Created On</th>
+        <th style="width:110px;">Modified On</th>
+        <th style="width:100px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${caseConfigs.map(cc => {
+        const typeClass = cc.configType === 'Extract' ? 'config-type-extract' : cc.configType === 'Verify' ? 'config-type-verify' : 'config-type-integration';
+        return `
+        <tr onclick="openCaseDetail(${cc.id})">
+          <td class="text-muted text-xs">${cc.id}</td>
+          <td><span class="key-mono">${cc.caseId}</span></td>
+          <td><span class="config-type-badge ${typeClass}">${cc.configType}</span></td>
+          <td class="text-xs text-muted">v${cc.version}</td>
+          <td class="text-sm">${cc.organization}</td>
+          <td class="text-sm">${cc.department}</td>
+          <td class="text-xs text-muted">${cc.createdOn}</td>
+          <td class="text-xs text-muted">${cc.modifiedOn}</td>
+          <td>
+            <div class="actions" onclick="event.stopPropagation()">
+              <button class="btn btn-ghost text-xs px-2" onclick="openEditCaseConfig(${cc.id})" title="Edit"><i class="fa-solid fa-pen" style="font-size:11px;"></i></button>
+              <button class="btn btn-ghost text-xs px-2" onclick="openDuplicateCase(${cc.id})" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:11px;"></i></button>
+              <button class="btn btn-danger text-xs px-2" onclick="deleteCaseConfigById(${cc.id})" title="Delete"><i class="fa-solid fa-trash" style="font-size:11px;"></i></button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function openCaseDetail(id) {
+  currentCaseId = id;
+  document.getElementById('view-case-list').classList.add('hidden');
+  document.getElementById('view-case-detail').classList.remove('hidden');
+  renderCaseDetail();
+}
+
+// ════════════════════════════════════════════════════════════════
+// CASE CONFIG DETAIL
+// ════════════════════════════════════════════════════════════════
+function renderCaseDetail() {
+  const cc = caseConfigs.find(c => c.id === currentCaseId);
+  if (!cc) return;
+
+  document.getElementById('caseDetailBreadcrumb').textContent = cc.caseId + ' (v' + cc.version + ')';
+  document.getElementById('caseDetailTitle').textContent = cc.caseId;
+  document.getElementById('caseDetailSubtitle').textContent = `${cc.configType} · ${cc.organization} · ${cc.department} · v${cc.version}`;
+
+  const docs = cc.documents || {};
+  const masterFields = getAllMasterFieldKeys();
+
+  // Field Overrides per doc
+  const overrides = cc.field_overrides || {};
+  const overrideRows = Object.entries(overrides).map(([fk, ov]) => `
+    <tr>
+      <td><span class="key-mono text-xs">${fk}</span></td>
+      <td><input class="override-display text-xs" data-field="${fk}" value="${ov.display_name||''}" placeholder="same as master" style="width:160px;" /></td>
+      <td><input class="override-prompt text-xs" data-field="${fk}" value="${ov.prompt_description||''}" placeholder="same as master" style="width:200px;" /></td>
+      <td><button class="btn btn-danger text-xs px-2" onclick="removeOverride('${fk}')"><i class="fa-solid fa-xmark" style="font-size:10px;"></i></button></td>
+    </tr>`).join('');
+
+  // Aggregation
+  const agg = cc.aggregation || {};
+  const aggRows = Object.entries(agg).filter(([k,v]) => typeof v === 'string').map(([k,v]) => `
+    <tr>
+      <td><span class="key-mono text-xs">${k}</span></td>
+      <td><select class="agg-value text-xs" data-field="${k}" style="width:100px;">${['first','last','sum','concat'].map(op=>`<option ${v===op?'selected':''}>${op}</option>`).join('')}</select></td>
+      <td><button class="btn btn-danger text-xs px-2" onclick="removeAggField('${k}')"><i class="fa-solid fa-xmark" style="font-size:10px;"></i></button></td>
+    </tr>`).join('');
+
+  // Mandatory Fields
+  const mf = cc.mandatoryFields || {};
+  const mfEntries = Object.entries(mf).sort((a, b) => a[0].localeCompare(b[0]));
+  const mfRows = mfEntries.map(([fk, v]) => {
+    const reqDocs = Array.isArray(v.required_in_all) ? v.required_in_all : (v.required_in_all || '').split(',').map(s=>s.trim());
+    const docChips = reqDocs.map(d => `<span class="agg-tag">${d}</span>`).join('');
+    return `
+    <tr>
+      <td><span class="key-mono text-xs">${fk}</span></td>
+      <td><select class="mf-severity text-xs" data-field="${fk}" style="width:90px;">
+        <option ${v.severity==='ERROR'?'selected':''}>ERROR</option>
+        <option ${v.severity==='WARN'?'selected':''}>WARN</option>
+      </select></td>
+      <td><div class="flex flex-wrap gap-1">${docChips}</div></td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-ghost text-xs px-2" onclick="editMandatoryDocs('${fk}')" title="Edit"><i class="fa-solid fa-pen" style="font-size:11px;"></i></button>
+          <button class="btn btn-danger text-xs px-2" onclick="removeMandatoryField('${fk}')" title="Delete"><i class="fa-solid fa-trash" style="font-size:11px;"></i></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('caseDetailEditor').innerHTML = `
+  <div class="flex flex-col gap-4">
+
+    <!-- General Settings -->
+    <div class="case-section">
+      <div class="case-header open" onclick="toggleSection(this)">
+        <span class="text-sm font-medium">General Settings</span>
+        <i class="fa-solid fa-chevron-down chevron open" style="font-size:11px;color:#94A3B8;"></i>
+      </div>
+      <div class="case-body">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div><label>Model Profile</label><input id="cs-model" value="${cc.model_profile||''}" placeholder="e.g. vlm_qwen3_4b" /></div>
+          <div><label>Template</label><input id="cs-template" value="${cc.template||''}" placeholder="e.g. extract_with_bbox_image_index" /></div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label>Page Range</label><input id="cs-pagerange" value="${cc.page_range||''}" placeholder='e.g. "-"' /></div>
+          <div><label>Table Model Profile</label><input id="cs-tablemodel" value="${cc.table_model_profile||''}" /></div>
+          <div><label>Table Prompt Template</label><input id="cs-tableprompt" value="${cc.table_prompt_template||''}" /></div>
+        </div>
+        <div class="flex items-center gap-4 mt-3">
+          <label class="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" id="cs-multipage" ${cc.multi_page_vlm?'checked':''} class="accent-blue-500" />
+            multi_page_vlm
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-sm">
+            <input type="checkbox" id="cs-inherit" ${(cc.fields?.inherit ?? true)?'checked':''} class="accent-blue-500" />
+            fields.inherit
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Field Overrides -->
+    <div class="case-section">
+      <div class="case-header open" onclick="toggleSection(this)">
+        <span class="text-sm font-medium">Field Overrides <span class="text-xs text-muted ml-1">${Object.keys(overrides).length}</span></span>
+        <i class="fa-solid fa-chevron-down chevron open" style="font-size:11px;color:#94A3B8;"></i>
+      </div>
+      <div class="case-body">
+        ${overrideRows ? `
+        <table class="data-table mb-3">
+          <thead><tr><th>Field</th><th>Display Name</th><th>Prompt Description</th><th style="width:40px;"></th></tr></thead>
+          <tbody>${overrideRows}</tbody>
+        </table>` : '<span class="text-xs text-muted">No overrides defined.</span>'}
+        <div class="flex items-center gap-2 mt-2">
+          <select id="new-override-field" class="text-xs" style="width:180px;">
+            <option value="">— pick field —</option>
+            ${masterFields.map(f=>`<option value="${f}">${f}</option>`).join('')}
+          </select>
+          <button class="btn btn-ghost text-xs" onclick="addOverride()"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aggregation -->
+    <div class="case-section">
+      <div class="case-header open" onclick="toggleSection(this)">
+        <span class="text-sm font-medium">Aggregation <span class="text-xs text-muted ml-1">${Object.keys(agg).length}</span></span>
+        <i class="fa-solid fa-chevron-down chevron open" style="font-size:11px;color:#94A3B8;"></i>
+      </div>
+      <div class="case-body">
+        ${aggRows ? `
+        <table class="data-table mb-3">
+          <thead><tr><th>Field</th><th>Operation</th><th style="width:40px;"></th></tr></thead>
+          <tbody>${aggRows}</tbody>
+        </table>` : '<span class="text-xs text-muted">No aggregation defined.</span>'}
+        <div class="flex items-center gap-2 mt-2">
+          <select id="new-agg-field" class="text-xs" style="width:180px;">
+            <option value="">— pick field —</option>
+            ${masterFields.map(f=>`<option value="${f}">${f}</option>`).join('')}
+          </select>
+          <select id="new-agg-op" class="text-xs" style="width:100px;">
+            ${['first','last','sum','concat'].map(op=>`<option>${op}</option>`).join('')}
+          </select>
+          <button class="btn btn-ghost text-xs" onclick="addAggField()"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mandatory Fields (embedded) -->
+    <div class="case-section" style="border-color:#78350f;">
+      <div class="case-header open" onclick="toggleSection(this)" style="background:#2a2015;">
+        <span class="text-sm font-medium" style="color:#FCD34D;"><i class="fa-solid fa-shield-halved mr-1"></i> Mandatory Fields <span class="text-xs text-muted ml-1">${mfEntries.length}</span></span>
+        <i class="fa-solid fa-chevron-down chevron open" style="font-size:11px;color:#94A3B8;"></i>
+      </div>
+      <div class="case-body">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs text-muted">Fields required for this case's document types.</p>
+          <div class="flex gap-2">
+            <select id="new-mf-field" class="text-xs" style="width:160px;">
+              <option value="">— pick field —</option>
+              ${masterFields.map(f=>`<option value="${f}">${f}</option>`).join('')}
+            </select>
+            <button class="btn btn-primary text-xs" onclick="addMandatoryField()"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+        </div>
+        ${mfRows ? `
+        <table class="data-table">
+          <thead><tr><th>Field Key</th><th style="width:100px;">Severity</th><th>Required In</th><th style="width:80px;">Actions</th></tr></thead>
+          <tbody>${mfRows}</tbody>
+        </table>` : '<div class="text-xs text-muted text-center py-4">No mandatory fields defined.</div>'}
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function getAllMasterFieldKeys() {
+  const keys = new Set();
+  masterConfigs.forEach(mc => Object.keys(mc.fields || {}).forEach(k => keys.add(k)));
+  return [...keys].sort();
+}
+
+function getCurrentCase() { return caseConfigs.find(c => c.id === currentCaseId); }
+
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const chev = header.querySelector('.chevron');
+  const isOpen = !body.classList.contains('hidden');
+  body.classList.toggle('hidden', isOpen);
+  header.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+// ════════════════════════════════════════════════════════════════
+// CASE CONFIG CRUD
+// ════════════════════════════════════════════════════════════════
+function openAddCaseConfig() {
+  modalCallback = (data) => {
+    _caseSeq++;
+    caseConfigs.push({
+      id: _caseSeq,
+      caseId: data.caseId.trim().toUpperCase(),
+      configType: data.configType,
+      version: 1,
+      organization: data.organization.trim(),
+      department: data.department.trim(),
+      createdOn: new Date().toISOString().slice(0, 10),
+      modifiedOn: new Date().toISOString().slice(0, 10),
+      documents: {}, mandatoryFields: {},
+      model_profile: 'vlm_qwen3_4b', template: 'extract_with_bbox_image_index',
+      multi_page_vlm: true, fields: { inherit: true },
+      field_overrides: {}, aggregation: {}
+    });
+    renderCaseConfigTable();
+    showToast('Case config created');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'New Case Config';
+  document.getElementById('modalBody').innerHTML = `
+  <div class="flex flex-col gap-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Case ID *</label><input id="cc-caseid" placeholder="e.g. AIR IPC" /></div>
+      <div><label>Config Type *</label>
+        <select id="cc-type">
+          <option value="Extract">Extract</option>
+          <option value="Verify">Verify</option>
+          <option value="Integration">Integration</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Organization</label><input id="cc-org" placeholder="e.g. ABC Logistics" /></div>
+      <div><label>Department</label><input id="cc-dept" placeholder="e.g. Operations" /></div>
+    </div>
+  </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function openEditCaseConfig(id) {
+  const cc = caseConfigs.find(c => c.id === id);
+  modalCallback = (data) => {
+    cc.caseId = data.caseId.trim().toUpperCase();
+    cc.configType = data.configType;
+    cc.organization = data.organization.trim();
+    cc.department = data.department.trim();
+    cc.modifiedOn = new Date().toISOString().slice(0, 10);
+    renderCaseConfigTable();
+    showToast('Updated');
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = 'Edit Case Config';
+  document.getElementById('modalBody').innerHTML = `
+  <div class="flex flex-col gap-4">
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Case ID *</label><input id="cc-caseid" value="${cc.caseId}" /></div>
+      <div><label>Config Type *</label>
+        <select id="cc-type">
+          ${['Extract','Verify','Integration'].map(t=>`<option ${cc.configType===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div><label>Organization</label><input id="cc-org" value="${cc.organization}" /></div>
+      <div><label>Department</label><input id="cc-dept" value="${cc.department}" /></div>
+    </div>
+  </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+function openDuplicateCase(id) {
+  const cc = caseConfigs.find(c => c.id === id);
+  _caseSeq++;
+  const dup = JSON.parse(JSON.stringify(cc));
+  dup.id = _caseSeq;
+  dup.caseId = cc.caseId + ' (Copy)';
+  dup.version = 1;
+  dup.createdOn = new Date().toISOString().slice(0, 10);
+  dup.modifiedOn = new Date().toISOString().slice(0, 10);
+  caseConfigs.push(dup);
+  renderCaseConfigTable();
+  showToast('Duplicated');
+}
+
+function deleteCaseConfigById(id) {
+  const cc = caseConfigs.find(c => c.id === id);
+  if (!confirm(`Delete "${cc.caseId}"?`)) return;
+  caseConfigs = caseConfigs.filter(c => c.id !== id);
+  if (currentCaseId === id) switchFeature('case-configs');
+  renderCaseConfigTable();
+  showToast('Deleted', 'danger');
+}
+
+function deleteCaseConfig() {
+  if (currentCaseId === null) return;
+  deleteCaseConfigById(currentCaseId);
+}
+
+function saveCaseDetail() {
+  const cc = getCurrentCase();
+  if (!cc) return;
+  cc.model_profile = document.getElementById('cs-model')?.value.trim() || null;
+  cc.template = document.getElementById('cs-template')?.value.trim() || null;
+  cc.page_range = document.getElementById('cs-pagerange')?.value.trim() || undefined;
+  cc.table_model_profile = document.getElementById('cs-tablemodel')?.value.trim() || undefined;
+  cc.table_prompt_template = document.getElementById('cs-tableprompt')?.value.trim() || undefined;
+  cc.multi_page_vlm = document.getElementById('cs-multipage')?.checked;
+  if (!cc.fields) cc.fields = {};
+  cc.fields.inherit = document.getElementById('cs-inherit')?.checked;
+
+  // Overrides
+  const displays = document.querySelectorAll('.override-display');
+  const prompts = document.querySelectorAll('.override-prompt');
+  const overrides = {};
+  displays.forEach(el => {
+    const fk = el.dataset.field;
+    if (!overrides[fk]) overrides[fk] = {};
+    if (el.value.trim()) overrides[fk].display_name = el.value.trim();
+  });
+  prompts.forEach(el => {
+    const fk = el.dataset.field;
+    if (!overrides[fk]) overrides[fk] = {};
+    if (el.value.trim()) overrides[fk].prompt_description = el.value.trim();
+  });
+  cc.field_overrides = overrides;
+
+  // Aggregation
+  const aggSelects = document.querySelectorAll('.agg-value');
+  const agg = cc.aggregation || {};
+  aggSelects.forEach(sel => { agg[sel.dataset.field] = sel.value; });
+  cc.aggregation = agg;
+
+  // Mandatory severities
+  const severities = document.querySelectorAll('.mf-severity');
+  severities.forEach(sel => {
+    if (cc.mandatoryFields[sel.dataset.field]) {
+      cc.mandatoryFields[sel.dataset.field].severity = sel.value;
+    }
+  });
+
+  cc.version = (cc.version || 0) + 1;
+  cc.modifiedOn = new Date().toISOString().slice(0, 10);
+  showToast(`${cc.caseId} saved (v${cc.version})`);
+  document.getElementById('caseDetailBreadcrumb').textContent = cc.caseId + ' (v' + cc.version + ')';
+  document.getElementById('caseDetailSubtitle').textContent = `${cc.configType} · ${cc.organization} · ${cc.department} · v${cc.version}`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CASE: OVERRIDES / AGGREGATION / MANDATORY
+// ════════════════════════════════════════════════════════════════
+function addOverride() {
+  const sel = document.getElementById('new-override-field');
+  const fk = sel.value;
+  if (!fk) return;
+  const cc = getCurrentCase();
+  if (!cc.field_overrides) cc.field_overrides = {};
+  if (!cc.field_overrides[fk]) cc.field_overrides[fk] = {};
+  renderCaseDetail();
+}
+
+function removeOverride(fk) {
+  const cc = getCurrentCase();
+  delete cc.field_overrides[fk];
+  renderCaseDetail();
+}
+
+function addAggField() {
+  const f = document.getElementById('new-agg-field').value;
+  const op = document.getElementById('new-agg-op').value;
+  if (!f) return;
+  const cc = getCurrentCase();
+  if (!cc.aggregation) cc.aggregation = {};
+  cc.aggregation[f] = op;
+  renderCaseDetail();
+}
+
+function removeAggField(fk) {
+  const cc = getCurrentCase();
+  delete cc.aggregation[fk];
+  renderCaseDetail();
+}
+
+function addMandatoryField() {
+  const fk = document.getElementById('new-mf-field').value;
+  if (!fk) return;
+  const cc = getCurrentCase();
+  if (!cc.mandatoryFields) cc.mandatoryFields = {};
+  if (!cc.mandatoryFields[fk]) {
+    cc.mandatoryFields[fk] = { severity: 'ERROR', required_in_all: [] };
+  }
+  renderCaseDetail();
+}
+
+function removeMandatoryField(fk) {
+  const cc = getCurrentCase();
+  delete cc.mandatoryFields[fk];
+  renderCaseDetail();
+}
+
+function editMandatoryDocs(fk) {
+  const cc = getCurrentCase();
+  const v = cc.mandatoryFields[fk];
+  const current = Array.isArray(v.required_in_all) ? v.required_in_all : (v.required_in_all||'').split(',').map(s=>s.trim());
+
+  // Collect all doc types from master configs
+  const allDocTypes = new Set();
+  masterConfigs.forEach(mc => {
+    Object.values(mc.fields || {}).forEach(f => (f.document_types || []).forEach(t => allDocTypes.add(t)));
+  });
+  const allDocs = [...allDocTypes].sort();
+
+  modalCallback = () => {
+    const checked = [...document.querySelectorAll('.mf-doc-check:checked')].map(c=>c.value);
+    const extra = document.getElementById('mf-extra-doc')?.value.trim();
+    if (extra) checked.push(...extra.split(',').map(s=>s.trim()).filter(Boolean));
+    cc.mandatoryFields[fk].required_in_all = checked;
+    renderCaseDetail();
+    return true;
+  };
+  document.getElementById('modalTitle').textContent = fk + ' — Required In';
+  document.getElementById('modalBody').innerHTML = `
+    <div>
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        ${allDocs.map(d=>`<label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" value="${d}" ${current.includes(d)?'checked':''} class="mf-doc-check accent-blue-500" /> ${d}</label>`).join('')}
+      </div>
+      <div><label>Other (comma-separated)</label><input id="mf-extra-doc" placeholder="e.g. FOREIGN_CONTRACT" /></div>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════════════════════
+function confirmModal() {
+  let data = {};
+  if (document.getElementById('ff-key')) data = collectFieldForm();
+  else if (document.getElementById('mc-key')) data = { key: document.getElementById('mc-key').value.trim() };
+  else if (document.getElementById('cc-caseid')) data = {
+    caseId: document.getElementById('cc-caseid').value.trim(),
+    configType: document.getElementById('cc-type').value,
+    organization: document.getElementById('cc-org').value.trim(),
+    department: document.getElementById('cc-dept').value.trim(),
+  };
+  else data = {};
+
+  if (modalCallback) {
+    const ok = modalCallback(data);
+    if (ok !== false) closeModal();
+  }
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  modalCallback = null;
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+// ════════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════════════════════════════
+function exportAll() {
+  const out = { masterConfigs, caseConfigs };
+  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'configs_export.json';
+  a.click();
+  showToast('Exported');
+}
+
+function importAll() { document.getElementById('importFile').click(); }
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.masterConfigs) masterConfigs = data.masterConfigs;
+      if (data.caseConfigs) caseConfigs = data.caseConfigs;
+      _masterSeq = Math.max(0, ...masterConfigs.map(m=>m.id));
+      _caseSeq = Math.max(0, ...caseConfigs.map(c=>c.id));
+      currentMasterId = null;
+      currentCaseId = null;
+      switchFeature(currentFeature);
+      showToast('Imported successfully');
+    } catch { showToast('Invalid JSON file', 'danger'); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+}
+
+// ════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa-solid fa-${type==='success'?'check':'triangle-exclamation'}"></i> ${msg}`;
+  t.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.add('hidden'), 2500);
+}
+
+// ════════════════════════════════════════════════════════════════
+// SAMPLE DATA (from master-config.json + case-config.json)
+// ════════════════════════════════════════════════════════════════
+const SAMPLE_MASTER = {"eta":{"type":"date","order":16,"parser":null,"example":"","normalizer":"date","description":"Estimated Time of Arrival.","display_name":"ETA","post_process":null,"document_types":["DEBIT_NOTE","COMMERCIAL_INVOICE"],"normalizer_params":{"format":"YYYY-MM-DD"},"verify_strategies":["common_date"],"prompt_description":"Estimated Time of Arrival."},"etd":{"type":"date","order":15,"parser":null,"example":"","normalizer":"date","description":"Estimated Time of Departure.","display_name":"ETD","post_process":null,"document_types":["DEBIT_NOTE","COMMERCIAL_INVOICE"],"normalizer_params":{"format":"YYYY-MM-DD"},"verify_strategies":["common_date"],"prompt_description":"Estimated Time of Departure."},"date":{"type":"string","order":3,"parser":null,"example":"","normalizer":null,"description":"The date that invoice or receipt be issued.","display_name":"Date","post_process":null,"document_types":["SEHC_INVOICE","SEHC_BANK_BILL","SEHC_RECEIPT"],"verify_strategies":["common_string"],"prompt_description":"The date of the transaction as shown on the receipt."},"hbl_no":{"type":"string","order":1,"parser":null,"example":"","normalizer":"alphanumeric","description":"The House Bill of Lading number.","display_name":"HBL No","post_process":null,"document_types":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"],"verify_strategies":["common_string"],"prompt_description":"The House Bill of Lading number, typically located in the top right of document."},"pieces":{"type":"integer","order":7,"parser":"extract_integer","normalizer":"integer","description":"The total count of individual packages in the shipment.","display_name":"No. of Pieces","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","DEBIT_NOTE","COMMERCIAL_INVOICE"],"verify_strategies":["common_numeric"],"prompt_description":"The total count of individual packages in the shipment."},"address":{"type":"string","order":2,"parser":null,"example":"","normalizer":null,"description":"The complete physical address of the vendor.","display_name":"Address","post_process":null,"document_types":["SEHC_INVOICE","SEHC_BANK_BILL","SEHC_RECEIPT"],"verify_strategies":["common_string"],"prompt_description":"The complete physical address of the merchant."},"incoterm":{"type":"string","order":15,"parser":null,"example":"","sidp_name":"terms_of_delivery","normalizer":"llm","description":"The international commercial terms (Incoterms).","display_name":"Incoterm","post_process":null,"document_types":["PACKING_LIST","COMMERCIAL_INVOICE","HOUSE_BL","FOREIGN_CONTRACT"],"normalizer_params":{"temperature":0,"model_profile":"llm_qwen3_4b","prompt_template":"normalize_incoterm_llm"},"verify_strategies":["common_string"],"prompt_description":"The international commercial terms (Incoterms) defining the transaction responsibilities."},"quantity":{"type":"integer","order":11,"parser":"extract_integer","example":"","normalizer":"integer","description":"The total number of items.","display_name":"Quantity","post_process":null,"document_types":["PACKING_LIST","VENDOR_PACKING_LIST","COMMERCIAL_INVOICE"],"verify_strategies":["common_numeric"],"prompt_description":"The total number of items."},"flight_no":{"type":"string","order":6,"parser":null,"normalizer":"flight_normalize","description":"The flight number(s) assigned to the shipment.","display_name":"Flight","post_process":null,"document_types":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"],"verify_strategies":["common_string"],"prompt_description":"The flight number(s) assigned to the shipment."},"tolerance":{"type":"string","order":19,"parser":null,"example":"","normalizer":null,"description":"Tolerance.","display_name":"Tolerance","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Tolerance."},"invoice_no":{"type":"string","order":10,"parser":null,"example":"","normalizer":"alphanumeric","description":"The specific alphanumeric reference number for the commercial invoice.","display_name":"Invoice No.","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","COMMERCIAL_INVOICE"],"verify_strategies":["common_string"],"prompt_description":"The specific alphanumeric reference number for the commercial invoice."},"items_table":{"type":"table","parser":null,"columns":[{"key":"item_number","type":"integer","display_name":"Item Number"},{"key":"material_code","type":"string","display_name":"Material Code"},{"key":"quantity","type":"integer","display_name":"Quantity"},{"key":"unit_price","type":"float","display_name":"Unit Price"},{"key":"amount","type":"float","display_name":"Amount"}],"example":"[{\"item_number\":1,\"material_code\":\"2203-007240\",\"quantity\":2,\"unit_price\":10.50,\"amount\":21.00}]","merge_key":["material_code","unit_price"],"column_ops":{"amount":"sum","quantity":"sum"},"normalizer":null,"description":"The list of line items.","column_types":{"amount":"float","quantity":"integer","unit_price":"float","item_number":"integer","material_code":"string"},"display_name":"Item List","post_process":null,"document_types":["COMMERCIAL_INVOICE","VENDOR_PACKING_LIST","PACKING_LIST"],"verify_strategies":["table_row_match"],"prompt_description":"Line items table with item number, material code, quantity, unit price, and amount"},"total_price":{"type":"float","order":4,"parser":null,"example":"","normalizer":"float","description":"The final amount paid.","display_name":"Total Price","post_process":null,"document_types":["SEHC_INVOICE","SEHC_BANK_BILL","SEHC_RECEIPT"],"verify_strategies":["common_numeric"],"prompt_description":"The final amount paid, including currency symbols if present."},"vender_name":{"type":"string","order":1,"parser":null,"example":"","normalizer":null,"description":"The trading name of the vendor or seller.","display_name":"Vendor's Name","post_process":null,"document_types":["SEHC_INVOICE","SEHC_BANK_BILL","SEHC_RECEIPT"],"verify_strategies":["common_string"],"prompt_description":"The full legal or trading name of the merchant."},"airport_dept":{"type":"string","order":4,"parser":null,"sidp_name":"port_of_loading","normalizer":"airport_normalize","description":"The name or 3-letter IATA code of the origin airport.","display_name":"Airport of Departure","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","DEBIT_NOTE","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["airport_dict"],"prompt_description":"The name or 3-letter IATA code of the origin airport."},"airport_dest":{"type":"string","order":5,"parser":null,"sidp_name":"port_of_discharge","normalizer":"airport_normalize","description":"The name or 3-letter IATA code of the arrival airport.","display_name":"Airport of Arrival","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","DEBIT_NOTE","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["airport_dict"],"prompt_description":"The name or 3-letter IATA code of the arrival airport."},"gross_weight":{"type":"float","order":8,"parser":"extract_weight_kg","normalizer":"float","description":"The total actual weight.","display_name":"Gross Weight","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","DEBIT_NOTE"],"verify_strategies":["common_numeric"],"prompt_description":"The total actual weight."},"invoice_date":{"type":"date","order":19,"parser":null,"example":"","normalizer":"date","description":"The date the invoice was issued.","display_name":"Invoice Date","post_process":null,"document_types":["PACKING_LIST","COMMERCIAL_INVOICE"],"normalizer_params":{"format":"YYYY-MM-DD"},"verify_strategies":["common_date"],"prompt_description":"The date the invoice was issued."},"shipper_name":{"type":"string","order":2,"parser":null,"example":"","sidp_name":"seller_name","normalizer":null,"description":"The full legal or trading name of the sender.","display_name":"Shipper's Name","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"The full legal or trading name of the sender."},"total_amount":{"type":"float","order":17,"parser":null,"example":"","sidp_name":"total_mount","normalizer":null,"description":"The total monetary value of the invoice.","display_name":"Total Amount","post_process":null,"document_types":["PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_numeric"],"prompt_description":"The total monetary value of the invoice."},"consignee_name":{"type":"string","order":13,"parser":null,"example":"","sidp_name":"buyer_name","normalizer":null,"description":"The full legal or trading name of the recipient.","display_name":"Consignee's Name","post_process":null,"document_types":["HOUSE_BL","DEBIT_NOTE","PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"The full legal or trading name of the recipient."},"country_origin":{"type":"string","order":12,"parser":null,"example":"","normalizer":"country_normalize","description":"The country where the goods were manufactured.","display_name":"Country of Origin","post_process":null,"document_types":["COMMERCIAL_INVOICE"],"verify_strategies":["country_dict"],"prompt_description":"The country where the goods were manufactured or produced."},"commodity_goods":{"type":"string","order":25,"parser":null,"example":"","normalizer":null,"description":"Commodity Goods.","display_name":"Commodity Goods","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Commodity Goods."},"contract_number":{"type":"string","order":26,"parser":null,"example":"","normalizer":null,"description":"Contract Number.","display_name":"Contract Number","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Contract Number."},"shipper_address":{"type":"string","order":3,"parser":null,"example":"","sidp_name":"seller_address","normalizer":null,"description":"The complete physical or mailing address of the sender.","display_name":"Shipper's Address","post_process":null,"document_types":["HOUSE_BL","PACKING_LIST","VENDOR_PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"The complete physical or mailing address of the sender."},"invoice_currency":{"type":"string","order":18,"parser":null,"example":"","sidp_name":"currency","normalizer":"upper","description":"The currency in which the invoice amount is denominated.","display_name":"Invoice Currency","post_process":null,"document_types":["PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"The currency in which the invoice amount is denominated (e.g., USD, EUR)."},"terms_of_payment":{"type":"string","order":27,"parser":null,"example":"","normalizer":null,"description":"Terms Of Payment","display_name":"Terms Of Payment","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Terms Of Payment"},"chargeable_weight":{"type":"float","order":9,"parser":"extract_weight_kg","example":"","normalizer":"float","description":"The weight used for billing purposes.","display_name":"Chargeable Weight","post_process":null,"document_types":["HOUSE_BL","DEBIT_NOTE"],"verify_strategies":["common_numeric"],"prompt_description":"The weight used for billing purposes."},"consignee_address":{"type":"string","order":14,"parser":null,"example":"","sidp_name":"buyer_address","normalizer":null,"description":"The complete physical or mailing address of the recipient.","display_name":"Consignee's Address","post_process":null,"document_types":["HOUSE_BL","DEBIT_NOTE","PACKING_LIST","COMMERCIAL_INVOICE","FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"The complete physical or mailing address of the recipient."},"required_documents":{"type":"string","order":27,"parser":null,"example":"","normalizer":null,"description":"Required Documents.","display_name":"Required Documents","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Required Documents."},"advising_bank_swift_code":{"type":"string","order":28,"parser":null,"example":"","normalizer":null,"description":"Advising Bank Swift Code.","display_name":"Advising Bank Swift Code","post_process":null,"document_types":["FOREIGN_CONTRACT"],"verify_strategies":["common_string"],"prompt_description":"Advising Bank Swift Code."}};
+
+const SAMPLE_CASE = {"documents":{"HOUSE_BL":{"fields":{"inherit":true},"template":"extract_with_bbox_image_index","model_profile":"vlm_qwen3_4b","multi_page_vlm":true,"field_overrides":{"hbl_no":{"display_name":"HBL No."},"invoice_no":{"display_name":"Invoice No","prompt_description":"The invoice number(s) of the document."}}},"DEBIT_NOTE":{"fields":{"inherit":true},"template":"extract_with_bbox_image_index","model_profile":"vlm_qwen3_4b","multi_page_vlm":true,"field_overrides":{"hbl_no":{"display_name":"HAWB No.","prompt_description":"The House Air Waybill number."}}},"PACKING_LIST":{"fields":{"inherit":true,"reorder":["shipper_name","shipper_address","airport_dept","airport_dest","pieces","gross_weight","invoice_no","quantity","invoice_date","total_amount","invoice_currency","consignee_name","consignee_address","incoterm"]},"template":"extract_with_bbox_image_index","page_range":"-","aggregation":{"incoterm":"first","quantity":"sum","flight_no":"first","invoice_no":"concat","items_table":{"columns":{"amount":"sum","quantity":"sum"},"merge_key":["material_code","unit_price"]},"airport_dept":"first","airport_dest":"first","invoice_date":"concat","shipper_name":"first","consignee_name":"first","country_origin":"first","shipper_address":"first","invoice_currency":"first","consignee_address":"first"},"model_profile":"vlm_qwen3_4b","multi_page_vlm":true,"field_overrides":{"pieces":{"prompt_description":"The total count of individual packages or items in the shipment."},"airport_dest":{"display_name":"Airport of Destination"}},"table_model_profile":"vlm_qwen3_4b","table_prompt_template":"extract_table_json"},"COMMERCIAL_INVOICE":{"fields":{"inherit":true,"reorder":["shipper_name","shipper_address","airport_dept","airport_dest","pieces","invoice_no","quantity","country_origin","incoterm","hbl_no","invoice_date","total_amount","invoice_currency","consignee_name","consignee_address","flight_no","etd","eta"]},"template":"extract_with_bbox_image_index","page_range":"-","aggregation":{"eta":"first","etd":"first","hbl_no":"first","pieces":"sum","incoterm":"first","quantity":"sum","flight_no":"first","invoice_no":"concat","items_table":{"columns":{"amount":"sum","quantity":"sum"},"merge_key":["material_code","unit_price"]},"airport_dept":"first","airport_dest":"first","shipper_name":"first","consignee_name":"first","country_origin":"first","shipper_address":"first","invoice_currency":"first","consignee_address":"first"},"model_profile":"vlm_qwen3_4b","multi_page_vlm":true,"field_overrides":{"hbl_no":{"display_name":"HBL No.","prompt_description":"The House Bill of Lading number."}},"table_model_profile":"vlm_qwen3_4b","table_prompt_template":"extract_table_json"}},"mandatory_fields":{"eta":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"]},"etd":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"]},"hbl_no":{"severity":"ERROR","required_in_all":"HOUSE_BL,DEBIT_NOTE,COMMERCIAL_INVOICE"},"pieces":{"severity":"ERROR","required_in_all":["DEBIT_NOTE","HOUSE_BL","PACKING_LIST","COMMERCIAL_INVOICE"]},"incortem":{"severity":"ERROR","required_in_all":["PACKING_LIST"]},"quantity":{"severity":"ERROR","required_in_all":["PACKING_LIST","COMMERCIAL_INVOICE"]},"flight_no":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"]},"invoice_no":{"severity":"ERROR","required_in_all":["COMMERCIAL_INVOICE"]},"airport_dept":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"]},"airport_dest":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","COMMERCIAL_INVOICE"]},"gross_weight":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE","PACKING_LIST"]},"invoice_date":{"severity":"ERROR","required_in_all":["COMMERCIAL_INVOICE"]},"shipper_name":{"severity":"ERROR","required_in_all":["HOUSE_BL","PACKING_LIST","COMMERCIAL_INVOICE"]},"total_amount":{"severity":"ERROR","required_in_all":["COMMERCIAL_INVOICE"]},"consignee_name":{"severity":"ERROR","required_in_all":["DEBIT_NOTE","HOUSE_BL","PACKING_LIST","COMMERCIAL_INVOICE"]},"shipper_address":{"severity":"ERROR","required_in_all":["HOUSE_BL","PACKING_LIST","COMMERCIAL_INVOICE"]},"invoice_currency":{"severity":"ERROR","required_in_all":["COMMERCIAL_INVOICE"]},"chargeable_weight":{"severity":"ERROR","required_in_all":["HOUSE_BL","DEBIT_NOTE"]},"consignee_address":{"severity":"ERROR","required_in_all":["DEBIT_NOTE","HOUSE_BL","PACKING_LIST","COMMERCIAL_INVOICE"]}}};
+</script>
+</body>
+</html>
